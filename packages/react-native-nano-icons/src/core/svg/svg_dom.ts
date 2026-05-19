@@ -187,5 +187,3 @@ export function preprocessSvg(content: string): string {
   if (/xmlns\s*=/.test(content)) return content;
   return content.replace(/<svg\b/, '<svg xmlns="http://www.w3.org/2000/svg"');
 }
-
-
