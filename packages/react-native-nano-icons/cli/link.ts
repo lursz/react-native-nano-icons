@@ -13,7 +13,12 @@ type ShellScriptOptions = {
 
 type XcodeProject = {
   parseSync: () => XcodeProject;
-  getFirstTarget: () => { uuid: string };
+  getFirstTarget: () => { uuid: string; firstTarget: { name: string } };
+  getBuildProperty: (
+    prop: string,
+    build?: string,
+    targetName?: string
+  ) => string | undefined;
   addBuildPhase: (
     filePaths: string[],
     phaseType: string,
@@ -49,18 +54,44 @@ async function linkAndroid(
   }
 }
 
+function resolveInfoPlistPath(
+  project: XcodeProject,
+  targetName: string,
+  iosDir: string
+): string | null {
+  const raw = project.getBuildProperty('INFOPLIST_FILE', undefined, targetName);
+  if (!raw) return null;
+
+  const unquoted = raw.replace(/^"(.*)"$/, '$1');
+  const resolved = unquoted
+    .replace(/\$\(SRCROOT\)/g, iosDir)
+    .replace(/\$\{SRCROOT\}/g, iosDir);
+
+  return path.isAbsolute(resolved) ? resolved : path.join(iosDir, resolved);
+}
+
 async function linkIos(
   projectRoot: string,
   builtFonts: BuiltFont[]
 ): Promise<void> {
   const iosDir = path.join(projectRoot, 'ios');
 
-  const appDir = fs
+  const xcodeprojDir = fs
     .readdirSync(iosDir, { withFileTypes: true })
-    .filter((d) => d.isDirectory())
-    .find((d) => fs.existsSync(path.join(iosDir, d.name, 'Info.plist')));
+    .find((d) => d.name.endsWith('.xcodeproj'));
 
-  if (!appDir) return;
+  if (!xcodeprojDir) return;
+
+  const pbxprojPath = path.join(iosDir, xcodeprojDir.name, 'project.pbxproj');
+  const xcode = require('xcode') as { project: (p: string) => XcodeProject };
+  const project = xcode.project(pbxprojPath);
+  project.parseSync();
+
+  const firstTarget = project.getFirstTarget();
+  const targetName = firstTarget.firstTarget.name.replace(/^"|"$/g, '');
+
+  const infoPlistPath = resolveInfoPlistPath(project, targetName, iosDir);
+  if (!infoPlistPath || !fs.existsSync(infoPlistPath)) return;
 
   const fontNames: string[] = [];
   const iosFontsStaging = path.join(iosDir, IOS_NANOICONS_FONTS_DIR);
@@ -72,7 +103,6 @@ async function linkIos(
     fs.copyFileSync(b.ttfPath, path.join(iosFontsStaging, name));
   }
 
-  const infoPlistPath = path.join(iosDir, appDir.name, 'Info.plist');
   const plistContent = fs.readFileSync(infoPlistPath, 'utf8');
   const obj = plist.parse(plistContent) as plist.PlistObject;
 
@@ -87,41 +117,30 @@ async function linkIos(
   };
   fs.writeFileSync(infoPlistPath, plist.build(updated), 'utf8');
 
-  const xcodeprojDir = fs
-    .readdirSync(iosDir, { withFileTypes: true })
-    .find((d) => d.name.endsWith('.xcodeproj'));
+  const hasPhase = Object.entries(
+    project.hash.project.objects['PBXShellScriptBuildPhase'] ?? {}
+  ).some(
+    ([, v]) =>
+      typeof v === 'object' && v?.name?.includes(IOS_RUN_SCRIPT_PHASE_NAME)
+  );
 
-  if (xcodeprojDir) {
-    const pbxprojPath = path.join(iosDir, xcodeprojDir.name, 'project.pbxproj');
-    const xcode = require('xcode') as { project: (p: string) => XcodeProject };
-    const project = xcode.project(pbxprojPath);
-    project.parseSync();
-
-    const hasPhase = Object.entries(
-      project.hash.project.objects['PBXShellScriptBuildPhase'] ?? {}
-    ).some(
-      ([, v]) =>
-        typeof v === 'object' && v?.name?.includes(IOS_RUN_SCRIPT_PHASE_NAME)
-    );
-
-    if (!hasPhase) {
-      const script = `
+  if (!hasPhase) {
+    const script = `
         NANOICONS_DIR="\\\${PROJECT_DIR}/${IOS_NANOICONS_FONTS_DIR}"
         if [ -d "$NANOICONS_DIR" ]; then
           cp "$NANOICONS_DIR"/*.ttf "\\\${BUILT_PRODUCTS_DIR}/\\\${UNLOCALIZED_RESOURCES_FOLDER_PATH}/" 2>/dev/null || true
         fi
       `;
 
-      project.addBuildPhase(
-        [],
-        'PBXShellScriptBuildPhase',
-        IOS_RUN_SCRIPT_PHASE_NAME,
-        project.getFirstTarget().uuid,
-        { shellPath: '/bin/sh', shellScript: script }
-      );
+    project.addBuildPhase(
+      [],
+      'PBXShellScriptBuildPhase',
+      IOS_RUN_SCRIPT_PHASE_NAME,
+      firstTarget.uuid,
+      { shellPath: '/bin/sh', shellScript: script }
+    );
 
-      fs.writeFileSync(pbxprojPath, project.writeSync(), 'utf8');
-    }
+    fs.writeFileSync(pbxprojPath, project.writeSync(), 'utf8');
   }
 }
 
