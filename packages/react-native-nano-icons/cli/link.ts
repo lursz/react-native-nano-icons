@@ -13,12 +13,7 @@ type ShellScriptOptions = {
 
 type XcodeProject = {
   parseSync: () => XcodeProject;
-  getFirstTarget: () => { uuid: string; firstTarget: { name: string } };
-  getBuildProperty: (
-    prop: string,
-    build?: string,
-    targetName?: string
-  ) => string | undefined;
+  getFirstTarget: () => { uuid: string };
   addBuildPhase: (
     filePaths: string[],
     phaseType: string,
@@ -54,22 +49,6 @@ async function linkAndroid(
   }
 }
 
-function resolveInfoPlistPath(
-  project: XcodeProject,
-  targetName: string,
-  iosDir: string
-): string | null {
-  const raw = project.getBuildProperty('INFOPLIST_FILE', undefined, targetName);
-  if (!raw) return null;
-
-  const unquoted = raw.replace(/^"(.*)"$/, '$1');
-  const resolved = unquoted
-    .replace(/\$\(SRCROOT\)/g, iosDir)
-    .replace(/\$\{SRCROOT\}/g, iosDir);
-
-  return path.isAbsolute(resolved) ? resolved : path.join(iosDir, resolved);
-}
-
 async function linkIos(
   projectRoot: string,
   builtFonts: BuiltFont[]
@@ -82,16 +61,9 @@ async function linkIos(
 
   if (!xcodeprojDir) return;
 
-  const pbxprojPath = path.join(iosDir, xcodeprojDir.name, 'project.pbxproj');
-  const xcode = require('xcode') as { project: (p: string) => XcodeProject };
-  const project = xcode.project(pbxprojPath);
-  project.parseSync();
-
-  const firstTarget = project.getFirstTarget();
-  const targetName = firstTarget.firstTarget.name.replace(/^"|"$/g, '');
-
-  const infoPlistPath = resolveInfoPlistPath(project, targetName, iosDir);
-  if (!infoPlistPath || !fs.existsSync(infoPlistPath)) return;
+  const appName = xcodeprojDir.name.replace(/\.xcodeproj$/, '');
+  const infoPlistPath = path.join(iosDir, appName, 'Info.plist');
+  if (!fs.existsSync(infoPlistPath)) return;
 
   const fontNames: string[] = [];
   const iosFontsStaging = path.join(iosDir, IOS_NANOICONS_FONTS_DIR);
@@ -117,6 +89,11 @@ async function linkIos(
   };
   fs.writeFileSync(infoPlistPath, plist.build(updated), 'utf8');
 
+  const pbxprojPath = path.join(iosDir, xcodeprojDir.name, 'project.pbxproj');
+  const xcode = require('xcode') as { project: (p: string) => XcodeProject };
+  const project = xcode.project(pbxprojPath);
+  project.parseSync();
+
   const hasPhase = Object.entries(
     project.hash.project.objects['PBXShellScriptBuildPhase'] ?? {}
   ).some(
@@ -136,7 +113,7 @@ async function linkIos(
       [],
       'PBXShellScriptBuildPhase',
       IOS_RUN_SCRIPT_PHASE_NAME,
-      firstTarget.uuid,
+      project.getFirstTarget().uuid,
       { shellPath: '/bin/sh', shellScript: script }
     );
 
