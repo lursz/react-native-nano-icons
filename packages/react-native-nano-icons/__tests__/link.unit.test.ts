@@ -59,9 +59,7 @@ describe('linkBare — iOS Info.plist target selection', () => {
     const iosDir = path.join(projectRoot, 'ios');
     fs.mkdirSync(iosDir);
 
-    // Decoy target — created first AND alphabetically first, so any
-    // readdir ordering (alphabetical or insertion-order) returns it
-    // before MyApp. The pre-fix code would have picked this one.
+    // decoy - alphabetically-first, should be ignored
     fs.mkdirSync(path.join(iosDir, 'AppExtension'));
     fs.writeFileSync(
       path.join(iosDir, 'AppExtension', 'Info.plist'),
