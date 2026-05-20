@@ -22,9 +22,8 @@ export class PathKitManager {
     const PathKitInit = require('pathkit-wasm/bin/pathkit.js') as (
       opts: unknown
     ) => any;
-    const pathkitJsPath = require.resolve(
-      'pathkit-wasm/bin/pathkit.js'
-    ) as string;
+    const pathkitJsPath =
+      require.resolve('pathkit-wasm/bin/pathkit.js') as string;
     const pathkitBinDir = path.dirname(pathkitJsPath);
     const pathkitWasmPath = path.join(pathkitBinDir, 'pathkit.wasm');
 
@@ -74,14 +73,10 @@ export class PyodideManager {
     await py.loadPackage(['micropip', 'lxml'], { messageCallback: () => {} });
 
     // Resolve local picosvg wheel path for offline-first installation.
-    const picosvgWhlDir = path.join(
-      getPackageRoot(),
-      'src',
-      'core',
-      'shims'
+    const picosvgWhlDir = path.join(getPackageRoot(), 'src', 'core', 'shims');
+    const picosvgWhl = (await fs.readdir(picosvgWhlDir)).find(
+      (f) => f.startsWith('picosvg-') && f.endsWith('.whl')
     );
-    const picosvgWhl = (await fs.readdir(picosvgWhlDir))
-      .find((f) => f.startsWith('picosvg-') && f.endsWith('.whl'));
     const localWhlUrl = picosvgWhl
       ? `file://${path.join(picosvgWhlDir, picosvgWhl)}`
       : null;
