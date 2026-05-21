@@ -23,7 +23,10 @@ import {
 } from '../svg/svg_dom.js';
 import { computePlacement, transformPathForFont } from '../svg/layers.js';
 import { convertEvenoddToWinding } from '../svg/svg_pathops.js';
-import type { GlyphLayer, NanoGlyphMap } from '../types.js';
+import type {
+  GlyphLayer,
+  NanoGlyphMap,
+} from '../types.js';
 import type { NanoLogger } from '../types.js';
 
 export type PipelineResult = {
@@ -35,12 +38,7 @@ export type PipelineResult = {
 // Same-color path merging
 // ---------------------------------------------------------------------------
 
-type ParsedPath = {
-  d: string;
-  fill: string | null;
-  fillRule?: 'evenodd';
-  noMerge?: boolean;
-};
+type ParsedPath = { d: string; fill: string | null; fillRule?: 'evenodd'; noMerge?: boolean };
 
 /**
  * Concatenate multiple SVG path `d` strings into a single compound path.
@@ -186,9 +184,7 @@ export async function runPipeline(
     }
     for (const p of parsed.paths) {
       if (p.fillRule === 'evenodd') {
-        logger?.info(
-          `  ↻ Converting evenodd path to nonzero winding in "${file}"`
-        );
+        logger?.info(`  ↻ Converting evenodd path to nonzero winding in "${file}"`);
         p.d = convertEvenoddToWinding(PathKit, p.d);
         delete p.fillRule;
         (p as ParsedPath).noMerge = true;

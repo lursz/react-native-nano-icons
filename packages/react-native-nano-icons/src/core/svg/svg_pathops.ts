@@ -457,6 +457,7 @@ function bestStartMinYMinX(
   return best;
 }
 
+
 // ---------------------------------------------------------------------------
 // Containment helpers (module-level for reuse by fixPathWinding)
 // ---------------------------------------------------------------------------
@@ -509,10 +510,7 @@ function contourToPolyline(
       for (let i = 1; i <= steps; i++) {
         const t = i / steps;
         const mt = 1 - t;
-        pts.push([
-          mt * mt * x0 + 2 * mt * t * x1 + t * t * x2,
-          mt * mt * y0 + 2 * mt * t * y1 + t * t * y2,
-        ]);
+        pts.push([mt * mt * x0 + 2 * mt * t * x1 + t * t * x2, mt * mt * y0 + 2 * mt * t * y1 + t * t * y2]);
       }
       cx = x2;
       cy = y2;
@@ -529,14 +527,8 @@ function contourToPolyline(
         const t = i / steps;
         const mt = 1 - t;
         pts.push([
-          mt * mt * mt * x0 +
-            3 * mt * mt * t * x1 +
-            3 * mt * t * t * x2 +
-            t * t * t * x3,
-          mt * mt * mt * y0 +
-            3 * mt * mt * t * y1 +
-            3 * mt * t * t * y2 +
-            t * t * t * y3,
+          mt * mt * mt * x0 + 3 * mt * mt * t * x1 + 3 * mt * t * t * x2 + t * t * t * x3,
+          mt * mt * mt * y0 + 3 * mt * mt * t * y1 + 3 * mt * t * t * y2 + t * t * t * y3,
         ]);
       }
       cx = x3;
@@ -558,7 +550,10 @@ function pointInPolygon(px: number, py: number, poly: Point[]): boolean {
   for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
     const [xi, yi] = poly[i]!;
     const [xj, yj] = poly[j]!;
-    if (yi > py !== yj > py && px < ((xj - xi) * (py - yi)) / (yj - yi) + xi) {
+    if (
+      yi > py !== yj > py &&
+      px < ((xj - xi) * (py - yi)) / (yj - yi) + xi
+    ) {
       inside = !inside;
     }
   }
@@ -568,10 +563,7 @@ function pointInPolygon(px: number, py: number, poly: Point[]): boolean {
 /**
  * Get a representative point on the contour boundary (midpoint of first segment).
  */
-function getContourSamplePoint(
-  contourCmds: readonly Cmd[],
-  V: VerbMap
-): Point | null {
+function getContourSamplePoint(contourCmds: readonly Cmd[], V: VerbMap): Point | null {
   let cx = 0,
     cy = 0;
   for (const cmd of contourCmds) {
@@ -592,14 +584,8 @@ function getContourSamplePoint(
       const t = 0.5,
         mt = 0.5;
       return [
-        mt ** 3 * cx +
-          3 * mt ** 2 * t * cmd[1]! +
-          3 * mt * t ** 2 * cmd[3]! +
-          t ** 3 * cmd[5]!,
-        mt ** 3 * cy +
-          3 * mt ** 2 * t * cmd[2]! +
-          3 * mt * t ** 2 * cmd[4]! +
-          t ** 3 * cmd[6]!,
+        mt ** 3 * cx + 3 * mt ** 2 * t * cmd[1]! + 3 * mt * t ** 2 * cmd[3]! + t ** 3 * cmd[5]!,
+        mt ** 3 * cy + 3 * mt ** 2 * t * cmd[2]! + 3 * mt * t ** 2 * cmd[4]! + t ** 3 * cmd[6]!,
       ];
     }
   }
@@ -611,20 +597,14 @@ function getContourSamplePoint(
  * Even nesting depth = CCW (outer), odd = CW (hole).
  */
 function applyContainmentWinding(
-  contourObjs: Array<{
-    cmds: Cmd[];
-    explicitCloseWanted: boolean;
-    absA: number;
-  }>,
+  contourObjs: Array<{ cmds: Cmd[]; explicitCloseWanted: boolean; absA: number }>,
   V: VerbMap
 ): void {
   const n = contourObjs.length;
   if (n === 0) return;
 
   const polylines = contourObjs.map((obj) => contourToPolyline(obj.cmds, V));
-  const samplePts = contourObjs.map((obj) =>
-    getContourSamplePoint(obj.cmds, V)
-  );
+  const samplePts = contourObjs.map((obj) => getContourSamplePoint(obj.cmds, V));
   const depths = new Array<number>(n).fill(0);
 
   for (let i = 0; i < n; i++) {
@@ -645,11 +625,7 @@ function applyContainmentWinding(
     const a = approxSignedAreaFromContourCmds(obj.cmds, V);
     const isCCW = a > 0;
     if (wantCCW !== isCCW) {
-      obj.cmds = reverseClosedContourKeepStart(
-        obj.cmds,
-        obj.explicitCloseWanted,
-        V
-      );
+      obj.cmds = reverseClosedContourKeepStart(obj.cmds, obj.explicitCloseWanted, V);
     }
   };
 
@@ -716,9 +692,7 @@ export function convertEvenoddToWinding(
     if (v === V.MOVE) parts.push(`M${roundN(cmd[1]!)} ${roundN(cmd[2]!)}`);
     else if (v === V.LINE) parts.push(`L${roundN(cmd[1]!)} ${roundN(cmd[2]!)}`);
     else if (v === V.QUAD)
-      parts.push(
-        `Q${roundN(cmd[1]!)} ${roundN(cmd[2]!)} ${roundN(cmd[3]!)} ${roundN(cmd[4]!)}`
-      );
+      parts.push(`Q${roundN(cmd[1]!)} ${roundN(cmd[2]!)} ${roundN(cmd[3]!)} ${roundN(cmd[4]!)}`);
     else if (v === V.CUBIC)
       parts.push(
         `C${roundN(cmd[1]!)} ${roundN(cmd[2]!)} ${roundN(cmd[3]!)} ${roundN(cmd[4]!)} ${roundN(cmd[5]!)} ${roundN(cmd[6]!)}`
@@ -908,17 +882,17 @@ export function buildPathopsBackend(PathKit: PathKitModule) {
 
       const cap =
         capInt === 1
-          ? (Caps.ROUND ?? 1)
+          ? Caps.ROUND ?? 1
           : capInt === 2
-            ? (Caps.SQUARE ?? 2)
-            : (Caps.BUTT ?? 0);
+          ? Caps.SQUARE ?? 2
+          : Caps.BUTT ?? 0;
 
       const join =
         joinInt === 1
-          ? (Joins.ROUND ?? 1)
+          ? Joins.ROUND ?? 1
           : joinInt === 2
-            ? (Joins.BEVEL ?? 2)
-            : (Joins.MITER ?? 0);
+          ? Joins.BEVEL ?? 2
+          : Joins.MITER ?? 0;
 
       const work = PathKit.NewPath(h.p);
 
@@ -987,10 +961,10 @@ export function buildPathopsBackend(PathKit: PathKitModule) {
         const Ops = PathKit.PathOp ?? {};
         const op =
           opInt === 1
-            ? (Ops.INTERSECT ?? 1)
+            ? Ops.INTERSECT ?? 1
             : opInt === 2
-              ? (Ops.DIFFERENCE ?? 2)
-              : (Ops.UNION ?? 0);
+            ? Ops.DIFFERENCE ?? 2
+            : Ops.UNION ?? 0;
 
         const out = PathKit.MakeFromOp(aHandle.p, bHandle.p, op);
         if (!out) return null;

@@ -54,12 +54,12 @@ export async function writeLayerSvg(opts: {
 
   const layerSvg = `
     <svg viewBox="0 0 ${opts.adv} ${
-      opts.upm
-    }" xmlns="http://www.w3.org/2000/svg">
+    opts.upm
+  }" xmlns="http://www.w3.org/2000/svg">
       <rect width="${opts.adv}" height="${opts.upm}" fill="none" />
       <g transform="translate(${opts.xOff}, ${opts.yOff}) scale(${
-        opts.scale
-      }) translate(${-opts.vx}, ${-opts.vy})">
+    opts.scale
+  }) translate(${-opts.vx}, ${-opts.vy})">
         <path d="${opts.d}" fill="black" />
       </g>
     </svg>`.trim();
