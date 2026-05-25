@@ -107,28 +107,18 @@ export function parseFlattenedSvg(
     .map(Number) ?? [0, 0, 100, 100];
 
   const viewBox: [number, number, number, number] =
-    viewBoxRaw.length === 4 &&
-    viewBoxRaw.every((n: number) => Number.isFinite(n))
+    viewBoxRaw.length === 4 && viewBoxRaw.every(Number.isFinite)
       ? [viewBoxRaw[0]!, viewBoxRaw[1]!, viewBoxRaw[2]!, viewBoxRaw[3]!]
       : [0, 0, 100, 100];
 
-  const pathNodes = svgEl ? svgEl.getElementsByTagName('path') : null;
-  const pathEls: Element[] = [];
-  if (pathNodes) {
-    for (let i = 0; i < pathNodes.length; i++) {
-      const el = pathNodes[i];
-      if (el) pathEls.push(el);
-    }
-  }
+  const pathEls = svgEl ? Array.from(svgEl.getElementsByTagName('path')) : [];
 
   const paths = pathEls
     .map(parsePath)
     .filter((p) => p.d.trim() !== '')
     .map((p) => {
       const { d, sanitized } = sanitizePathData(p.d);
-      if (sanitized) {
-        options?.onSanitize?.(p.d);
-      }
+      if (sanitized) options?.onSanitize?.(p.d);
       return { ...p, d };
     });
 
@@ -167,21 +157,15 @@ export function extractOriginalEvenoddDs(svgContent: string): string[] {
   }
 
   const doc = new DOMParser().parseFromString(svgContent, 'image/svg+xml');
-  const results: string[] = [];
 
-  const pathNodes = doc.getElementsByTagName('path');
-  for (let i = 0; i < pathNodes.length; i++) {
-    const el = pathNodes[i];
-    if (!el) continue;
-    if (
-      el.getAttribute('fill-rule') === 'evenodd' ||
-      el.getAttribute('clip-rule') === 'evenodd'
-    ) {
-      const d = el.getAttribute('d');
-      if (d) results.push(d);
-    }
-  }
-  return results;
+  return Array.from(doc.getElementsByTagName('path'))
+    .filter(
+      (el) =>
+        el.getAttribute('fill-rule') === 'evenodd' ||
+        el.getAttribute('clip-rule') === 'evenodd'
+    )
+    .map((el) => el.getAttribute('d'))
+    .filter((d): d is string => d !== null && d !== '');
 }
 
 /**
