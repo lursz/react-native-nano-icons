@@ -175,11 +175,21 @@ static CTFontRef NanoIconGetCachedFont(NSString *family, CGFloat size) {
   _drawingLayer = layer;
 }
 
-// Re-detect inline state when the view moves to a new parent.
+// Reset inline state when the view moves to a new parent. Fabric recycles
+// view instances across mount points, so derived state (_isInlineInText,
+// _drawingLayer) from a prior incarnation must be cleared — otherwise an
+// updateProps that arrives before the next layout pass will redraw into the
+// stale layer, producing a duplicate render on top of drawRect: on self.
 - (void)didMoveToSuperview {
   [super didMoveToSuperview];
   _inlineDetected = NO;
+  _isInlineInText = NO;
+  _paragraphView = nil;
   _baselineOffsetValid = NO;
+  if (_drawingLayer) {
+    [_drawingLayer removeFromSuperlayer];
+    _drawingLayer = nil;
+  }
 }
 
 // Invalidate cached offset when size changes (text relayout).
