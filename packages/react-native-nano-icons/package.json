@@ -37,9 +37,9 @@
   },
   "dependencies": {
     "@expo/config-plugins": ">=9.0.0",
+    "@xmldom/xmldom": "^0.9.10",
     "chalk": "^5.6.2",
     "fonteditor-core": "^2.6.3",
-    "jsdom": "^28.1.0",
     "ora": "^9.3.0",
     "pathkit-wasm": "^1.0.0",
     "plist": "^3.0.5",

@@ -1,4 +1,4 @@
-import { JSDOM } from 'jsdom';
+import { DOMParser, type Element, type Node } from '@xmldom/xmldom';
 import { parseColor } from '../../utils/parse';
 
 export type ParsedFlatSvg = {
@@ -6,13 +6,22 @@ export type ParsedFlatSvg = {
   paths: Array<{ d: string; fill: string | null; fillRule?: 'evenodd' }>;
 };
 
+const ELEMENT_NODE = 1;
+
+function parentElementOf(node: Node): Element | null {
+  const parent = node.parentNode;
+  return parent && parent.nodeType === ELEMENT_NODE
+    ? (parent as Element)
+    : null;
+}
+
 // if the fill is implicit, walk ancestors for the first explicit fill value
 function resolveInheritedFill(el: Element): string {
-  let current: Element | null = el.parentElement;
+  let current: Element | null = parentElementOf(el);
   while (current !== null) {
     const fill = current.getAttribute('fill');
     if (fill !== null && fill !== 'inherit') return fill;
-    current = current.parentElement;
+    current = parentElementOf(current);
   }
   return 'black';
 }
@@ -89,21 +98,28 @@ export function parseFlattenedSvg(
   flattenedSvg: string,
   options?: { onSanitize?: (original: string) => void }
 ): ParsedFlatSvg {
-  const dom = new JSDOM(flattenedSvg);
-  const doc = dom.window.document;
+  const doc = new DOMParser().parseFromString(flattenedSvg, 'image/svg+xml');
+  const svgEl = doc.documentElement;
 
-  const svgEl = doc.querySelector('svg');
   const viewBoxRaw = svgEl
     ?.getAttribute('viewBox')
     ?.split(/\s+/)
     .map(Number) ?? [0, 0, 100, 100];
 
   const viewBox: [number, number, number, number] =
-    viewBoxRaw.length === 4 && viewBoxRaw.every((n) => Number.isFinite(n))
+    viewBoxRaw.length === 4 &&
+    viewBoxRaw.every((n: number) => Number.isFinite(n))
       ? [viewBoxRaw[0]!, viewBoxRaw[1]!, viewBoxRaw[2]!, viewBoxRaw[3]!]
       : [0, 0, 100, 100];
 
-  const pathEls = Array.from(doc.querySelectorAll('path'));
+  const pathNodes = svgEl ? svgEl.getElementsByTagName('path') : null;
+  const pathEls: Element[] = [];
+  if (pathNodes) {
+    for (let i = 0; i < pathNodes.length; i++) {
+      const el = pathNodes[i];
+      if (el) pathEls.push(el);
+    }
+  }
 
   const paths = pathEls
     .map(parsePath)
@@ -150,16 +166,20 @@ export function extractOriginalEvenoddDs(svgContent: string): string[] {
     return [];
   }
 
-  const dom = new JSDOM(svgContent, { contentType: 'image/svg+xml' });
-  const doc = dom.window.document;
+  const doc = new DOMParser().parseFromString(svgContent, 'image/svg+xml');
   const results: string[] = [];
 
-  const pathEls = doc.querySelectorAll(
-    'path[fill-rule="evenodd"], path[clip-rule="evenodd"]'
-  );
-  for (const el of pathEls) {
-    const d = el.getAttribute('d');
-    if (d) results.push(d);
+  const pathNodes = doc.getElementsByTagName('path');
+  for (let i = 0; i < pathNodes.length; i++) {
+    const el = pathNodes[i];
+    if (!el) continue;
+    if (
+      el.getAttribute('fill-rule') === 'evenodd' ||
+      el.getAttribute('clip-rule') === 'evenodd'
+    ) {
+      const d = el.getAttribute('d');
+      if (d) results.push(d);
+    }
   }
   return results;
 }
@@ -187,5 +207,3 @@ export function preprocessSvg(content: string): string {
   if (/xmlns\s*=/.test(content)) return content;
   return content.replace(/<svg\b/, '<svg xmlns="http://www.w3.org/2000/svg"');
 }
-
-
