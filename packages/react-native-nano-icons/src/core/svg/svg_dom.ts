@@ -1,4 +1,4 @@
-import { DOMParser, type Element, type Node } from '@xmldom/xmldom';
+import { DOMParser, type Element } from '@xmldom/xmldom';
 import { parseColor } from '../../utils/parse';
 
 export type ParsedFlatSvg = {
@@ -6,22 +6,13 @@ export type ParsedFlatSvg = {
   paths: Array<{ d: string; fill: string | null; fillRule?: 'evenodd' }>;
 };
 
-const ELEMENT_NODE = 1;
-
-function parentElementOf(node: Node): Element | null {
-  const parent = node.parentNode;
-  return parent && parent.nodeType === ELEMENT_NODE
-    ? (parent as Element)
-    : null;
-}
-
 // if the fill is implicit, walk ancestors for the first explicit fill value
 function resolveInheritedFill(el: Element): string {
-  let current: Element | null = parentElementOf(el);
+  let current = el.parentElement;
   while (current !== null) {
     const fill = current.getAttribute('fill');
     if (fill !== null && fill !== 'inherit') return fill;
-    current = parentElementOf(current);
+    current = current.parentElement;
   }
   return 'black';
 }
