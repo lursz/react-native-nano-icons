@@ -11,9 +11,15 @@ import { getOrBuildFonts } from './buildFonts.js';
 import type { IconSetConfig } from './types.js';
 
 const ANDROID_ASSETS_FONTS_DIR = 'app/src/main/assets/fonts';
+const IOS_FONTS_GROUP = 'Resources';
 
 /**
  * Add TTFs to the iOS project (Resources group + UIAppFonts in Info.plist).
+ *
+ * Copies each .ttf into ios/<projectName>/Resources/ on every prebuild so that
+ * Xcode's incremental build reliably picks up updated glyph data. Referencing
+ * the .ttf via a relative path outside ios/ leaves stale fonts in the .app
+ * bundle when only the file contents change.
  */
 export function withNanoIconsIos(
   config: Parameters<typeof withXcodeProject>[0],
@@ -25,15 +31,25 @@ export function withNanoIconsIos(
       iconSets
     );
     if (!built?.length) return config;
-    const ttfPaths = built.map((b) => b.ttfPath);
     const project = config.modResults;
     const platformProjectRoot = config.modRequest.platformProjectRoot;
-    IOSConfig.XcodeUtils.ensureGroupRecursively(project, 'Resources');
-    for (const fontPath of ttfPaths) {
-      const relativePath = path.relative(platformProjectRoot, fontPath);
+    const projectName =
+      config.modRequest.projectName ??
+      IOSConfig.XcodeUtils.getProjectName(config.modRequest.projectRoot);
+    const fontsDir = path.join(
+      platformProjectRoot,
+      projectName,
+      IOS_FONTS_GROUP
+    );
+    await fs.mkdir(fontsDir, { recursive: true });
+    IOSConfig.XcodeUtils.ensureGroupRecursively(project, IOS_FONTS_GROUP);
+    for (const { ttfPath } of built) {
+      const dest = path.join(fontsDir, path.basename(ttfPath));
+      await fs.copyFile(ttfPath, dest);
+      const relativePath = path.relative(platformProjectRoot, dest);
       IOSConfig.XcodeUtils.addResourceFileToGroup({
         filepath: relativePath,
-        groupName: 'Resources',
+        groupName: IOS_FONTS_GROUP,
         project,
         isBuildFile: true,
         verbose: true,
