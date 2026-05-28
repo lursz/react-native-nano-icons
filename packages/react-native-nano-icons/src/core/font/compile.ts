@@ -79,8 +79,7 @@ export async function compileTtfFromGlyphs(opts: {
   const { glyphs, outTtfPath, fontName, upm, ascent, descent } = opts;
   const lineGap = opts.lineGap ?? 0;
 
-  if (glyphs.length === 0)
-    throw new Error('No glyphs to compile');
+  if (glyphs.length === 0) throw new Error('No glyphs to compile');
 
   const svgFontString = buildSvgFontXml({
     fontName,

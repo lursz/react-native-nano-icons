@@ -61,6 +61,8 @@ export function createJSIconSet<GM extends NanoGlyphMapInput>(
       accessible,
       accessibilityLabel,
       accessibilityRole = 'image',
+      accessibilityElementsHidden,
+      importantForAccessibility,
       testID,
       ref,
     }: IconProps<keyof GM['i']>) => {
@@ -88,6 +90,8 @@ export function createJSIconSet<GM extends NanoGlyphMapInput>(
           accessible={accessible}
           accessibilityRole={accessibilityRole}
           accessibilityLabel={accessibilityLabel ?? (name as string)}
+          accessibilityElementsHidden={accessibilityElementsHidden}
+          importantForAccessibility={importantForAccessibility}
           testID={testID}>
           {layers.map(([codepoint, srcColor], i) => {
             const layerColor =

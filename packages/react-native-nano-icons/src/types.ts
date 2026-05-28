@@ -18,6 +18,8 @@ export type IconProps<Name> = {
   accessible?: boolean;
   accessibilityLabel?: string;
   accessibilityRole?: AccessibilityRole;
+  accessibilityElementsHidden?: boolean; // iOS
+  importantForAccessibility?: 'auto' | 'yes' | 'no' | 'no-hide-descendants'; // Android
   ref?: Ref<ViewRef>;
   testID?: string;
 };

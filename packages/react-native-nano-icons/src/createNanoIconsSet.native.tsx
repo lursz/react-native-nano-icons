@@ -47,7 +47,10 @@ export function createIconSet<GM extends NanoGlyphMapInput>(
   const codepointsCache = new Map<string, readonly number[]>();
   const defaultColorsCache = new Map<string, readonly number[]>();
 
-  function getCodepoints(name: string, layers: GlyphEntry[1]): readonly number[] {
+  function getCodepoints(
+    name: string,
+    layers: GlyphEntry[1]
+  ): readonly number[] {
     let cp = codepointsCache.get(name);
     if (!cp) {
       cp = layers.map(([c]) => c);
@@ -56,10 +59,15 @@ export function createIconSet<GM extends NanoGlyphMapInput>(
     return cp;
   }
 
-  function getDefaultColors(name: string, layers: GlyphEntry[1]): readonly number[] {
+  function getDefaultColors(
+    name: string,
+    layers: GlyphEntry[1]
+  ): readonly number[] {
     let colors = defaultColorsCache.get(name);
     if (!colors) {
-      colors = layers.map(([, srcColor]) => cachedProcessColor(srcColor ?? 'black'));
+      colors = layers.map(([, srcColor]) =>
+        cachedProcessColor(srcColor ?? 'black')
+      );
       defaultColorsCache.set(name, colors);
     }
     return colors;
@@ -75,6 +83,8 @@ export function createIconSet<GM extends NanoGlyphMapInput>(
       accessible,
       accessibilityLabel,
       accessibilityRole = 'image',
+      accessibilityElementsHidden,
+      importantForAccessibility,
       testID,
       ref,
     }: IconProps<keyof GM['i']>) => {
@@ -122,6 +132,8 @@ export function createIconSet<GM extends NanoGlyphMapInput>(
           accessible={accessible}
           accessibilityRole={accessibilityRole}
           accessibilityLabel={accessibilityLabel ?? (name as string)}
+          accessibilityElementsHidden={accessibilityElementsHidden}
+          importantForAccessibility={importantForAccessibility}
           testID={testID}
         />
       );
