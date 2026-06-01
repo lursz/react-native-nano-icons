@@ -81,8 +81,7 @@ export function createIconSet<GM extends NanoGlyphMapInput>(
         [size]
       );
 
-      const role =
-        accessibilityRole === 'image' ? 'img' : (accessibilityRole as string);
+      const role = accessibilityRole === 'image' ? 'img' : accessibilityRole;
 
       return (
         <span
