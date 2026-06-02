@@ -175,11 +175,17 @@ static CTFontRef NanoIconGetCachedFont(NSString *family, CGFloat size) {
   _drawingLayer = layer;
 }
 
-// Re-detect inline state when the view moves to a new parent.
+// Reset inline state when the view moves to a new parent.
 - (void)didMoveToSuperview {
   [super didMoveToSuperview];
   _inlineDetected = NO;
+  _isInlineInText = NO;
+  _paragraphView = nil;
   _baselineOffsetValid = NO;
+  if (_drawingLayer) {
+    [_drawingLayer removeFromSuperlayer];
+    _drawingLayer = nil;
+  }
 }
 
 // Invalidate cached offset when size changes (text relayout).
