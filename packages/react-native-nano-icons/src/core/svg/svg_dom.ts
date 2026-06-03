@@ -149,14 +149,18 @@ export function extractOriginalEvenoddDs(svgContent: string): string[] {
 
   const doc = new DOMParser().parseFromString(svgContent, 'image/svg+xml');
 
-  return Array.from(doc.getElementsByTagName('path'))
-    .filter(
-      (el) =>
+  return Array.from(doc.getElementsByTagName('path')).reduce<string[]>(
+    (acc, el) => {
+      const isEvenOdd =
         el.getAttribute('fill-rule') === 'evenodd' ||
-        el.getAttribute('clip-rule') === 'evenodd'
-    )
-    .map((el) => el.getAttribute('d'))
-    .filter((d): d is string => d !== null && d !== '');
+        el.getAttribute('clip-rule') === 'evenodd';
+      if (!isEvenOdd) return acc;
+      const d = el.getAttribute('d');
+      if (d !== null && d !== '') acc.push(d);
+      return acc;
+    },
+    []
+  );
 }
 
 /**
