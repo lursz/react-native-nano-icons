@@ -8,7 +8,7 @@ export { shallowEqualColor };
 
 const DEFAULT_ICON_SIZE = 12;
 
-// Web renderer: uses inline <span> elements so icons flow out of the box (display: inline-block keeps width/height
+// Web renderer: uses inline <span> elements so icons flow out of the box (display: inline-block keeps width/height)
 export function createIconSet<GM extends NanoGlyphMapInput>(
   glyphMap: GM
 ): IconComponent<GM> {
@@ -49,7 +49,7 @@ export function createIconSet<GM extends NanoGlyphMapInput>(
       const width = (adv / unitsPerEm) * size;
 
       const colorArray = Array.isArray(color) ? color : [color];
-      const lastPaletteColor = colorArray?.length
+      const lastPaletteColor = colorArray.length
         ? colorArray[colorArray.length - 1]
         : undefined;
 
@@ -94,7 +94,7 @@ export function createIconSet<GM extends NanoGlyphMapInput>(
           {...(accessible === false ? { tabIndex: -1 } : null)}>
           {layers.map(([codepoint, srcColor], i) => {
             const layerColor =
-              colorArray?.[i] ?? lastPaletteColor ?? srcColor ?? 'black';
+              colorArray[i] ?? lastPaletteColor ?? srcColor ?? 'black';
             return (
               <span
                 key={i}
