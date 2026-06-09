@@ -5,19 +5,19 @@ import {
 } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import HomeScreen from './screens/HomeScreen';
-import NanoIconsScreen from './screens/NanoIconsScreen';
+// import NanoIconsScreen from './screens/NanoIconsScreen';
 // import SVGIconsScreen from './screens/SVGIconsScreen';
 // import ExpoImageIconsScreen from './screens/ExpoImageIconsScreen';
-// import ExpoVectorIconsScreen from './screens/ExpoVectorIconsScreen';
+import ExpoVectorIconsScreen from './screens/ExpoVectorIconsScreen';
 
 const RootStack = createNativeStackNavigator({
   initialRouteName: 'Home',
   screens: {
     Home: HomeScreen,
-    Icons: NanoIconsScreen,
+    // Icons: NanoIconsScreen,
     // Icons: SVGIconsScreen,
     // Icons: ExpoImageIconsScreen,
-    // Icons: ExpoVectorIconsScreen,
+    Icons: ExpoVectorIconsScreen,
   },
 });
 

@@ -1996,7 +1996,7 @@ PODS:
     - React-RCTFBReactNativeSpec
     - ReactCommon/turbomodule/core
     - SocketRocket
-  - react-native-nano-icons (0.1.2):
+  - react-native-nano-icons (0.1.8):
     - boost
     - DoubleConversion
     - fast_float
@@ -3141,7 +3141,7 @@ SPEC CHECKSUMS:
   FBLazyVector: f1200e6ef6cf24885501668bdbb9eff4cf48843f
   fmt: a40bb5bd0294ea969aaaba240a927bd33d878cdd
   glog: 5683914934d5b6e4240e497e0f4a3b42d1854183
-  hermes-engine: 95f57981a43693a5e1acdda555721d76577cfbf2
+  hermes-engine: e87ceb827dc3c5c4c6a1f494ca5e84ef4be74c5f
   libavif: 5f8e715bea24debec477006f21ef9e95432e254d
   libdav1d: 23581a4d8ec811ff171ed5e2e05cd27bad64c39f
   libwebp: 02b23773aedb6ff1fd38cec7a77b81414c6842a8
@@ -3181,7 +3181,7 @@ SPEC CHECKSUMS:
   React-logger: 49a2029a7c055bf0ef005fec0955c2548fe88f12
   React-Mapbuffer: 2859d1e7202df918c8578db97deb5767b337dff9
   React-microtasksnativemodule: e811b68410bc71e77b91a700b527dc39661f6fc4
-  react-native-nano-icons: d01d4788806e414db2a06fd6f8c1de5eb4573076
+  react-native-nano-icons: 118c99a62175c3f4737ff21e85252c90158816fb
   react-native-release-profiler: 12729af9f7bd9b14426bd4610af28d5e4b4a0f0c
   react-native-safe-area-context: c00143b4823773bba23f2f19f85663ae89ceb460
   React-NativeModulesApple: 5327be5c0d9734f0c6db2219f3c20c13aef13884
@@ -3226,6 +3226,6 @@ SPEC CHECKSUMS:
   SocketRocket: d4aabe649be1e368d1318fdf28a022d714d65748
   Yoga: 3d56e80930898685da43cbf53b5843932df8e765
 
-PODFILE CHECKSUM: 550e9fb4a6d9095680a4c066363820c5573217a5
+PODFILE CHECKSUM: eac0fbaccb90bae1444658eaac7a06f0123342f1
 
 COCOAPODS: 1.15.2
