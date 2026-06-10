@@ -3,11 +3,24 @@
 ## Test Scenario
 
 Profiled with Xcode Profiler on Iphone 17 (base)
-Flow: **Home → 1k Icons → scroll to bottom → Home → 1k Icons again**
+Flow: Home → 1k Icons → scroll to bottom → Home → 1k Icons again
 
 ---
 
 ## Results Summary
+
+### Peak Memory
+The maximum value of **Current Bytes** at any point during the recording, shown on the Instruments graph at the cursor position. It represents the total live memory in the process at that instant - heap allocations + anonymous VM regions combined. It is the ceiling of what the OS needs to hold in RAM to keep the app running.
+
+### Persistent Heap
+The subset of heap allocations (`malloc`, `new`, `CFCreate`, Objective-C `alloc`, etc.) that were created and **not yet freed** at the selected cursor time. Shown in the "Persistent" column of the Allocations statistics table. A large gap between persistent heap and peak memory means either (a) most allocations were short-lived and freed, or (b) significant memory lives in anonymous VM that is not counted as heap.
+
+### Anonymous VM
+Memory mapped into the process address space without a file backing it - not tracked by the heap allocations instrument. Common sources:
+- Font data - CoreText mmap's `.ttf`/`.otf` files into anonymous pages (see expo-vector-icons: 307 MiB)
+- Image decode buffers - IOSurface and GPU-accessible backing stores for decoded images
+- JS engine memory - Hermes bytecode pages, GC heap, JIT output
+
 
 | Library | Peak Memory | Persistent Heap | Anonymous VM | Freed on back-nav | Render lag |
 |---|---|---|---|---|---|
@@ -39,45 +52,16 @@ Flow: **Home → 1k Icons → scroll to bottom → Home → 1k Icons again**
 ### `expo-image (SVG)` - 165.09 MiB peak
 
 - Top allocators: `SVGPathCommand` (1.48 MiB, ~48k instances, path instruction), `SVGAttribute` (795 KiB, ~25k instances, element attribute), `CGPath` (301 KiB, resolved geometry) - roughly 48 SVG element attributes per icon parsed and retained on the heap
-- SVG parsing delegated to Apple's CoreSVG/ImageIO stack - these objects represent the parsed SVG element tree kept in memory per icon while the view is live
-- **Where the icons actually live**: anonymous VM decode buffers are used during rasterisation (705 MiB cycled through in total across ~9,760 transient allocations); each buffer is freed immediately after compositing; the rendered pixels are then owned by the **CALayer backing store** (GPU compositor memory) which Instruments Allocations does not track - this is why persistent anonymous VM is only 2.59 MiB despite the 165 MiB peak
-- Memory graph: rises to ~165 MiB, then **drops significantly on back-nav** - CALayer backing stores are released when `ExpoImage` views deallocate on pop; disk cache persists so re-fetching is avoided, but SVGs are re-rasterised on every visit (another 705 MiB+ will be churned through on the second visit)
-- **Conclusion**: expo-image treats SVG icons as raster images - correct at every display resolution but expensive to re-render; the large rasterisation churn (705 MiB total VM) on every visit means it is not suited for icon-heavy screens that are navigated to frequently; it is better suited for occasional, large, high-quality SVG assets than for UI icon sets
+- expo-image does not parse SVGs itself - it hands each SVG file to Apple's ImageIO framework (the same pipeline used for PNG/JPEG decoding), which routes SVG files through CoreSVG (Apple's private SVG renderer). CoreSVG parses the XML and builds an internal representation, these objects stay alive in memory for as long as the view is live, because CoreSVG retains the parsed tree for potential re-rasterisation (e.g. on bounds change). This is fundamentally different from RNSVG, which maps SVG elements to React components — here there are no JS objects and no React tree at all, just a native image source fed into an image view. This is why Anonymous VM is low
+- Memory graph: rises to ~165 MiB, then drops significantly on back-nav -memory is released when `ExpoImage` views deallocate on pop. Disk cache persists so re-fetching is avoided, but SVGs are re-rasterised on every visit (another 705 MiB+ will be churned through on the second visit)
+- expo-image treats SVG icons as raster images - correct at every display resolution but expensive to re-render. Large rasterisation churn (705 MiB total VM) on every visit means it is not suited for icon-heavy screens that are navigated to frequently
 
 ### `expo-vector-icons` - 343.78 MiB peak
 
-- deprecated
+- First of all - is deprecated
 - Top allocators: `VM: RCTParagraphTextVi...` (**307.56 MiB**, font memory), `RCTParagraphComponent` (875 KiB, text layout), `RCTParagraphTextView` (625 KiB, glyph view)
-- Icons rendered as font glyphs via RN `<Text>` - the 307 MiB is font file data mmap'd into anonymous VM by CoreText the first time any glyph from that family is requested; the full `.ttf`/`.otf` file is loaded regardless of how many distinct glyphs are actually used
-- The 307 MiB is a **fixed process-level cost, not a per-icon cost** - using 1 Ionicons glyph or 10,000 costs the same anonymous VM; heap allocations are actually low (~37 KB per icon), meaning the per-icon rendering cost is lean once the font is loaded
-- Memory graph: flat baseline then **sharp vertical jump** - font loading is all-or-nothing; all 307 MiB lands in a single synchronous mmap when the first glyph is committed, which is why the graph has a step shape rather than a slope
+- Icons rendered as font glyphs via RN `<Text>` - the 307 MiB is font file data mmaped into anonymous VM by CoreText the first time any glyph from that family is requested. The full `.ttf`/`.otf` file is loaded regardless of how many distinct glyphs are actually used
+- The 307 MiB is a fixed process-level cost, not a per-icon cost - using 1 Ionicons glyph or 10,000 costs the same anonymous VM
+- Memory graph: flat baseline then **sharp vertical jump** - font loading is all-or-nothing - all 307 MiB lands in a single synchronous mmap when the first glyph is committed, which is why the graph has a step shape rather than a slope
 - VM never freed - CoreText font cache is a process-level singleton; navigating away does not release it; this memory is charged to the app for its entire lifetime after the first icon is rendered
-- **Conclusion**: the 307 MiB fixed cost is amortised across every icon render for the lifetime of the app - if an app uses Ionicons in dozens of screens, the per-use cost approaches zero; however, using multiple icon families (Ionicons + FontAwesome + MaterialIcons) multiplies the fixed cost; for icon-heavy screens this library has the worst memory profile by far, and the unfreeable VM makes it unsuitable for memory-constrained devices
-
----
-
-
-## Glossary
-
-### Peak Memory
-The maximum value of **Current Bytes** at any point during the recording, shown on the Instruments graph at the cursor position. It represents the total live memory in the process at that instant - heap allocations + anonymous VM regions combined. It is the ceiling of what the OS needs to hold in RAM to keep the app running.
-
-### Persistent Heap
-The subset of heap allocations (`malloc`, `new`, `CFCreate`, Objective-C `alloc`, etc.) that were created and **not yet freed** at the selected cursor time. Shown in the "Persistent" column of the Allocations statistics table. A large gap between persistent heap and peak memory means either (a) most allocations were short-lived and freed, or (b) significant memory lives in anonymous VM that is not counted as heap.
-
-### Anonymous VM
-Memory mapped into the process address space without a file backing it - not tracked by the heap allocations instrument. Common sources:
-- **Font data** - CoreText mmap's `.ttf`/`.otf` files into anonymous pages (see expo-vector-icons: 307 MiB)
-- **Image decode buffers** - IOSurface and GPU-accessible backing stores for decoded images
-- **JS engine memory** - Hermes bytecode pages, GC heap, JIT output
-- **Stack expansions** - guard pages and stack growth regions
-Visible only in the VM Tracker instrument track, not in the Allocations table. This is why expo-image shows 39 MiB persistent heap but a 165 MiB peak - the gap is CALayer backing store / IOSurface GPU memory, which is not anonymous VM either; it is entirely outside what Instruments Allocations measures.
-
----
-
-## Conclusion
-
-- **Best memory reclamation**: `react-native-nano-icons` - only lib that reliably frees memory on navigation
-- **Lowest peak**: `react-native-svg` - but the render lag makes it unsuitable for large, instantly-loaded lists
-- **Avoid at scale**: `expo-vector-icons` - 307 MiB of unfreeable font VM is a fixed cost per font family loaded
-- **Middle ground**: `expo-image` - consistent render speed and memory is reclaimed on back-nav; disk cache means repeat visits decode faster at the cost of storage
+- The 307 MiB fixed cost is amortised across every icon render for the lifetime of the app - if an app uses Ionicons in dozens of screens, the per-use cost approaches zero. However, for icon-heavy screens this lib has the worst memory profile by far, and the unfreeable VM makes it unsuitable for memory-constrained devices
