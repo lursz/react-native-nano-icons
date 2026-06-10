@@ -274,6 +274,24 @@ The chart shows time in milliseconds across three phases: **JS Thread** (JavaScr
 > [!NOTE]
 > For full methodology, device specifications, and reproduction steps see [BENCHMARKS.md](packages/react-native-nano-icons/docs/BENCHMARKS.md).
 
+### Memory
+
+Profiled with the Xcode Profiler on an iPhone 17 while rendering the same 1,000 icons (median of multiple runs).
+
+- **Peak Memory** — the highest total live memory in the process at any point (heap + anonymous VM combined), i.e. the RAM ceiling the OS must hold to keep the app running.
+- **Persistent Heap** — heap allocations (`malloc`/`new`/`alloc`/`CFCreate`) created and not yet freed; lower means fewer objects retained per icon.
+- **Anonymous VM** — memory mapped without a file backing (font data, image decode buffers, JS engine pages) that the heap instrument does not track.
+
+| Library | Peak Memory | Persistent Heap | Anonymous VM | Freed on back-nav | Render lag |
+|---|---|---|---|---|---|
+| `react-native-svg` | **105.76 MiB** | 34.32 MiB | 53.84 MiB | partial | **yes** |
+| `react-native-nano-icons` | **139.58 MiB** | 26.88 MiB | 55.16 MiB | yes (visible) | no |
+| `expo-image` (SVG) | **162.68 MiB** | 38.88 MiB | 2.59 MiB | yes | no |
+| `@expo/vector-icons` | **343.78 MiB** | 37.66 MiB | 310.12 MiB | no | no |
+
+> [!NOTE]
+> For per-library analysis see [MEMORY_BENCHMARK.md](examples/NanoIconsBenchmarking/MEMORY_BENCHMARK.md).
+
 ---
 
 ## ⚠️ Known Limitations
