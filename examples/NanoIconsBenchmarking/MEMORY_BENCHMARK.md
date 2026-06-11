@@ -29,6 +29,8 @@ Memory mapped into the process address space without a file backing it - not tra
 | `expo-image` (SVG) | **162.68 MiB** | 38.88 MiB | 2.59 MiB | yes | no |
 | `expo-vector-icons` | **343.78 MiB** | 37.66 MiB | 310.12 MiB | no | no |
 
+<img width="1748" height="874" alt="image" src="https://github.com/user-attachments/assets/1a82ef2c-936e-4e13-ae91-35a0a7748159" />
+
 ---
 
 ## Per-Library Analysis
