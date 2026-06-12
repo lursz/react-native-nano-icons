@@ -90,6 +90,7 @@ describe('linkBare — iOS Info.plist target selection', () => {
       fontFamily: 'TestFont',
       ttfPath: path.join(fontDir, 'TestFont.ttf'),
       glyphmapPath: path.join(fontDir, 'TestFont.glyphmap.json'),
+      linking: 'static',
     };
 
     await linkBare(projectRoot, [builtFont], makeLogger());
