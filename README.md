@@ -119,6 +119,7 @@ The plugin accepts an object with an `iconSets` array, allowing you to generate 
 | `outputDir`    | `string` | No       | `../nanoicons` | Path where the `.ttf` and `.json` artifacts will be saved. Defaults to a sibling `nanoicons` folder relative to the input. |
 | `upm`          | `number` | No       | `1024`         | Units Per Em. Defines the resolution of the font grid.                                                                     |
 | `startUnicode` | `string` | No       | `0xe900`       | The starting Hex Unicode point for the first icon glyph.                                                                   |
+| `linking`      | `'static' \| 'dynamic'` | No | `'static'` | Delivery mode for the generated TTF. `'static'` bundles it into the native app. `'dynamic'` excludes it from native linking so the host app can deliver it at runtime (e.g. via OTA). See [Dynamic linking (OTA)](#dynamic-linking-ota). |
 
   <details>
   <summary>Default Dir Path Behavior</summary>
@@ -203,6 +204,43 @@ export default function App() {
 | `accessibilityRole`  | `AccessibilityRole`          | `"image"`         | Accessibility role. Defaults to `"image"` so the icon is not misinterpreted as text.                                                         |
 | `testID`             | `string`                     | —                 | Test identifier for e2e testing frameworks.                                                                                                  |
 | `ref`                | `Ref<View>`                  | —                 | Ref to the underlying native view.                                                                                                           |
+
+### Dynamic linking (OTA)
+
+By default, generated TTFs are bundled into the native app at build/link time. Set `linking: 'dynamic'` on an icon set to opt out of that bundling — the build still produces the `.ttf` and `.glyphmap.json`, but neither the Expo config plugin nor the bare CLI will copy the TTF into `android/app/src/main/assets/fonts/` or add it to the iOS `UIAppFonts`. Delivering and registering the TTF at runtime becomes your responsibility.
+
+This is intended for OTA (over-the-air) workflows where icon sets ship outside the native binary.
+
+**Config**
+
+```JSON
+{
+  "iconSets": [
+    {
+      "inputDir": "./assets/icons/ota-icons",
+      "linking": "dynamic"
+    }
+  ]
+}
+```
+
+The generated glyphmap records the linking mode (`"m": { ..., "l": "d" }`); existing static glyphmaps are unchanged.
+
+**Runtime**
+
+Pass any truthy value as the second argument to `createNanoIconSet` to acknowledge that you (the host app) are delivering the font. The argument is a declaration signal — the library does **not** load or register it for you. The font must be available under the same family name (`glyphMap.m.f`) by the time icons render.
+
+```TypeScript
+import { createNanoIconSet } from "react-native-nano-icons";
+import glyphMap from "./ota-icons.glyphmap.json";
+
+// Your OTA-delivered TTF (path/asset/URL — whatever your delivery layer returns).
+const fontSource = require("./ota-icons.ttf");
+
+export const Icon = createNanoIconSet(glyphMap, fontSource);
+```
+
+If the glyphmap is dynamic but no font is passed, `createNanoIconSet` logs a warning at set creation and icons render as tofu until a font is registered under the family name. Passing a font argument to a statically-linked set also warns — it has no effect.
 
 ### 5. Font Regeneration
 

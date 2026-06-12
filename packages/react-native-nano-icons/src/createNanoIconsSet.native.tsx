@@ -4,7 +4,10 @@ import type { NanoGlyphMapInput, GlyphEntry } from './core/types';
 import type { IconComponent, IconProps } from './types';
 import { shallowEqualColor } from './utils/shallowEqualColor';
 import NanoIconViewNative from './specs/NanoIconViewNativeComponent';
-import { createJSIconSet } from './createNanoIconsSet.shared';
+import {
+  createJSIconSet,
+  warnIfLinkingMismatch,
+} from './createNanoIconsSet.shared';
 
 export type { IconComponent, IconProps };
 export { shallowEqualColor };
@@ -27,13 +30,22 @@ function cachedProcessColor(color: string): number {
 
 export function createIconSet<GM extends NanoGlyphMapInput>(
   glyphMap: GM
+): IconComponent<GM>;
+export function createIconSet<GM extends NanoGlyphMapInput>(
+  glyphMap: GM,
+  font: unknown
+): IconComponent<GM>;
+export function createIconSet<GM extends NanoGlyphMapInput>(
+  glyphMap: GM,
+  font?: unknown
 ): IconComponent<GM> {
   if (!HAS_NATIVE_IMPL) {
-    return createJSIconSet(glyphMap);
+    return createJSIconSet(glyphMap, font);
   }
 
   const fontFamilyBasename = glyphMap.m.f;
   const unitsPerEm = glyphMap.m.u;
+  warnIfLinkingMismatch(fontFamilyBasename, glyphMap.m.l, font);
 
   const resolveEntry = (name: keyof GM['i']): GlyphEntry => {
     return (glyphMap.i[name as string] ?? [
