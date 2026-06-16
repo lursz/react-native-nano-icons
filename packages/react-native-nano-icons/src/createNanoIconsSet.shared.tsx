@@ -3,6 +3,7 @@ import { PixelRatio, Platform, Text, View, type TextProps } from 'react-native';
 import type { NanoGlyphMapInput, GlyphEntry } from './core/types';
 import type { IconComponent, IconProps } from './types';
 import { shallowEqualColor } from './utils/shallowEqualColor';
+import { loadDynamicFont, useDynamicFontPending } from './loadDynamicFont';
 
 export type { IconComponent, IconProps };
 export { shallowEqualColor };
@@ -59,6 +60,13 @@ export function createJSIconSet<GM extends NanoGlyphMapInput>(
   const fontBasename = glyphMap.m.f;
   warnIfLinkingMismatch(fontBasename, glyphMap.m.l, font);
 
+  // Dynamically-linked set with a provided font → register it (web: FontFace)
+  // and hide icons until ready.
+  const managed = glyphMap.m.l === 'd' && font != null;
+  if (managed) {
+    void loadDynamicFont(fontBasename, font).catch(() => undefined);
+  }
+
   const fontReference = Platform.select({
     windows: `/Assets/${fontBasename}`,
     default: fontBasename,
@@ -112,6 +120,8 @@ export function createJSIconSet<GM extends NanoGlyphMapInput>(
       const scaledSize = size * fontScale;
       const width = (adv / unitsPerEm) * scaledSize;
 
+      const pending = useDynamicFontPending(managed, fontBasename);
+
       const colorArray = Array.isArray(color) ? color : [color];
       const lastPaletteColor = colorArray?.length
         ? colorArray[colorArray.length - 1]
@@ -134,21 +144,23 @@ export function createJSIconSet<GM extends NanoGlyphMapInput>(
           accessibilityElementsHidden={accessibilityElementsHidden}
           importantForAccessibility={importantForAccessibility}
           testID={testID}>
-          {layers.map(([codepoint, srcColor], i) => {
-            const layerColor =
-              colorArray?.[i] ?? lastPaletteColor ?? srcColor ?? 'black';
+          {pending
+            ? null
+            : layers.map(([codepoint, srcColor], i) => {
+                const layerColor =
+                  colorArray?.[i] ?? lastPaletteColor ?? srcColor ?? 'black';
 
-            return (
-              <Text
-                key={i}
-                selectable={false}
-                accessible={false}
-                allowFontScaling={allowFontScaling}
-                style={[styleOverrides, sizeStyle, { color: layerColor }]}>
-                {getChar(codepoint)}
-              </Text>
-            );
-          })}
+                return (
+                  <Text
+                    key={i}
+                    selectable={false}
+                    accessible={false}
+                    allowFontScaling={allowFontScaling}
+                    style={[styleOverrides, sizeStyle, { color: layerColor }]}>
+                    {getChar(codepoint)}
+                  </Text>
+                );
+              })}
         </View>
       );
     },
@@ -162,5 +174,10 @@ export function createJSIconSet<GM extends NanoGlyphMapInput>(
 
   Icon.displayName = `NanoIcon(${fontBasename})`;
 
-  return Icon;
+  const IconComp = Icon as unknown as IconComponent<GM>;
+  IconComp.loadFont = (override) =>
+    glyphMap.m.l === 'd'
+      ? loadDynamicFont(fontBasename, override ?? font)
+      : Promise.resolve();
+  return IconComp;
 }

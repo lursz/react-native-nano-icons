@@ -164,7 +164,7 @@
   },
   "codegenConfig": {
     "name": "RNNanoIconsSpec",
-    "type": "components",
+    "type": "all",
     "jsSrcsDir": "./src/specs",
     "android": {
       "javaPackageName": "com.nanoicons"
