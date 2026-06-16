@@ -145,6 +145,13 @@ export type NanoGlyphMap = {
 
 /** Accepts JSON-inferred types where arrays aren't tuples. */
 export type NanoGlyphMapInput = {
-  m: { f: string; u: number; z: number; s: number; h?: string; l?: 's' | 'd' };
+  m: {
+    f: string;
+    u: number;
+    z: number;
+    s: number;
+    h?: string;
+    l?: 's' | 'd' | (string & {});
+  };
   i: Record<string, readonly unknown[]>;
 };

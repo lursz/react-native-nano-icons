@@ -20,7 +20,7 @@ const DEFAULT_ICON_SIZE = 12;
  */
 export function warnIfLinkingMismatch(
   fontFamily: string,
-  linking: 's' | 'd' | undefined,
+  linking: string | undefined,
   font: unknown
 ): void {
   const isDynamic = linking === 'd';
