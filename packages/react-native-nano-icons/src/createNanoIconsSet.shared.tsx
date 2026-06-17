@@ -62,11 +62,16 @@ export function createJSIconSet<GM extends NanoGlyphMapInput>(
   const fontBasename = glyphMap.m.f;
   warnIfLinkingMismatch(fontBasename, glyphMap.m.l, font);
 
-  // Dynamically-linked set with a provided font → register it (web: FontFace)
-  // and hide icons until ready.
+  // dynamically linked font - register and hide icons until ready
   const managed = glyphMap.m.l === 'd' && font != null;
   if (managed) {
-    void loadDynamicFont(fontBasename, font).catch(() => undefined);
+    void loadDynamicFont(fontBasename, font).catch((err) => {
+      if (__DEV__)
+        console.warn(
+          `[react-native-nano-icons] Failed to load dynamic font "${fontBasename}".`,
+          err
+        );
+    });
   }
 
   const fontReference = Platform.select({
