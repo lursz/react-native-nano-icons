@@ -2,7 +2,7 @@ import type { TurboModule } from 'react-native';
 import { TurboModuleRegistry } from 'react-native';
 
 export interface Spec extends TurboModule {
-  /** Register a font for NanoIconView. `family` must match glyphMap.m.f (on iOS, the TTF's embedded name). */
+  /** Pass glyphMap.m.f as `family`. On iOS it must also match the TTF's embedded PostScript/full name. */
   registerFont(family: string, uri: string): Promise<boolean>;
 }
 

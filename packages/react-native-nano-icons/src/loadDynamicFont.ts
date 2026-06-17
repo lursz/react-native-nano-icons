@@ -4,15 +4,6 @@ import NanoIconsFontLoader from './specs/NativeNanoIconsFontLoader';
 
 /**
  * Runtime registration of dynamically-linked (`l:"d"`) fonts.
- *
- * A dynamic font is deliberately NOT bundled into the native binary, so something
- * has to register it under its family name at runtime before icons can render.
- * This module does that without any third-party dependency:
- *  - native: via the NanoIconsFontLoader TurboModule (Typeface / CTFontManager)
- *  - web:    via the browser FontFace API
- *
- * State is tracked per family so the icon component can hide until the font is
- * ready (avoiding a tofu flash) and so repeated createNanoIconSet calls dedupe.
  */
 
 type FontStatus = 'loading' | 'ready' | 'error';
