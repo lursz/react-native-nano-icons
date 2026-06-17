@@ -24,6 +24,8 @@ export function warnIfLinkingMismatch(
   linking: string | undefined,
   font: unknown
 ): void {
+  if (!__DEV__) return;
+
   const isDynamic = linking === 'd';
   if (isDynamic && font == null) {
     console.warn(
