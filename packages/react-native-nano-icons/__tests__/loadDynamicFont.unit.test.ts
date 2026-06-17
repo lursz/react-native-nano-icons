@@ -86,6 +86,43 @@ describe('loadDynamicFont', () => {
     expect(getFontStatus('SWM')).toBe('error');
   });
 
+  test('after an error a later call retries (no permanent in-flight lock)', async () => {
+    mockRegisterFont.mockRejectedValueOnce(new Error('boom'));
+
+    await expect(loadDynamicFont('SWM', 'file:///X.ttf')).rejects.toThrow(
+      'boom'
+    );
+    expect(getFontStatus('SWM')).toBe('error');
+
+    // Default mock resolves true → the retry should actually run and succeed.
+    await loadDynamicFont('SWM', 'file:///X.ttf');
+
+    expect(mockRegisterFont).toHaveBeenCalledTimes(2);
+    expect(getFontStatus('SWM')).toBe('ready');
+  });
+
+  test('a ready font is not re-registered on a subsequent non-forced call', async () => {
+    await loadDynamicFont('SWM', 'file:///X.ttf');
+    expect(getFontStatus('SWM')).toBe('ready');
+
+    await loadDynamicFont('SWM', 'file:///X.ttf');
+
+    expect(mockRegisterFont).toHaveBeenCalledTimes(1);
+  });
+
+  test('force: true re-registers even when the family is already ready', async () => {
+    await loadDynamicFont('SWM', 'file:///X.ttf');
+    expect(getFontStatus('SWM')).toBe('ready');
+
+    await loadDynamicFont('SWM', 'file:///OTHER.ttf', { force: true });
+
+    expect(mockRegisterFont).toHaveBeenCalledTimes(2);
+    expect(mockRegisterFont).toHaveBeenLastCalledWith(
+      'SWM',
+      'file:///OTHER.ttf'
+    );
+  });
+
   test('unresolvable source → status "error", native never called', async () => {
     await expect(loadDynamicFont('SWM', true)).rejects.toThrow(
       /Unsupported font source/

@@ -94,33 +94,52 @@ async function register(family: string, uri: string): Promise<void> {
 }
 
 /**
- * Register `font` under `family`, once. Concurrent / repeated calls for the same
- * family return the same in-flight promise. Resolves when the font is registered.
+ * Register `font` under `family`. Concurrent calls share one in-flight load.
+ * Once settled, a later call retries after an error or no-ops if already
+ * registered — unless `opts.force` re-registers (used by the explicit `loadFont`).
  */
-export function loadDynamicFont(family: string, font: unknown): Promise<void> {
+export function loadDynamicFont(
+  family: string,
+  font: unknown,
+  opts?: { force?: boolean }
+): Promise<void> {
+  // Dedupe concurrent calls.
   const existing = inFlight.get(family);
   if (existing) return existing;
 
+  // Already registered → skip, unless the caller forces a reload.
+  if (!opts?.force && statusByFamily.get(family) === 'ready') {
+    return Promise.resolve();
+  }
+
   setStatus(family, 'loading');
 
-  const run = (async () => {
-    const uri = resolveFontUri(font);
-    await register(family, uri);
-  })();
-
-  const tracked = run.then(
-    () => setStatus(family, 'ready'),
-    (err) => {
+  const run = async (): Promise<void> => {
+    try {
+      await register(family, resolveFontUri(font));
+      setStatus(family, 'ready');
+    } catch (err) {
       setStatus(family, 'error');
       throw err;
     }
-  );
+  };
 
-  // Store a non-throwing promise so dedupe never produces unhandled rejections.
+  const tracked = run();
+
+  // Release the slot once settled so later calls can retry/reload
   inFlight.set(
     family,
-    tracked.catch(() => undefined)
+    (async () => {
+      try {
+        await tracked;
+      } catch {
+        // status already reflects the failure
+      } finally {
+        inFlight.delete(family);
+      }
+    })()
   );
+
   return tracked;
 }
 

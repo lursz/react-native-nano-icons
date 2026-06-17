@@ -179,7 +179,7 @@ export function createJSIconSet<GM extends NanoGlyphMapInput>(
   const IconComp = Icon as unknown as IconComponent<GM>;
   IconComp.loadFont = (override) =>
     glyphMap.m.l === 'd'
-      ? loadDynamicFont(fontBasename, override ?? font)
+      ? loadDynamicFont(fontBasename, override ?? font, { force: true })
       : Promise.resolve();
   return IconComp;
 }
