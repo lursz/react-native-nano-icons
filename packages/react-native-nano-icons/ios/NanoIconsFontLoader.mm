@@ -5,13 +5,8 @@
 
 RCT_EXPORT_MODULE()
 
-/**
- * Registers a dynamically-linked (OTA) font at runtime so the NanoIconView can
- * resolve it by family name via CTFontCreateWithName.
- *
- * Reads the bytes at `uri` (file:// / http(s):// / plain path) and registers them
- * with the process font manager. Caching/versioning of remote fonts is out of scope.
- */
+// Registers an OTA font for NanoIconView. On iOS, `family` must match the TTF's
+// embedded PostScript/full name — CTFontManager ignores the family argument.
 RCT_EXPORT_METHOD(registerFont:(NSString *)family
                   uri:(NSString *)uri
                   resolve:(RCTPromiseResolveBlock)resolve
@@ -37,6 +32,22 @@ RCT_EXPORT_METHOD(registerFont:(NSString *)family
   CGDataProviderRelease(provider);
   if (!cgFont) {
     reject(@"E_NANOICONS_FONT_REGISTER", @"Invalid font data", nil);
+    return;
+  }
+
+  NSString *postScriptName = (__bridge_transfer NSString *)CGFontCopyPostScriptName(cgFont);
+  NSString *fullName = (__bridge_transfer NSString *)CGFontCopyFullName(cgFont);
+  BOOL nameMatches =
+      [postScriptName isEqualToString:family] || [fullName isEqualToString:family];
+  if (!nameMatches) {
+    CGFontRelease(cgFont);
+    reject(
+        @"E_NANOICONS_FONT_REGISTER",
+        [NSString stringWithFormat:
+                      @"Font name \"%@\" does not match family \"%@\". "
+                      @"On iOS the TTF PostScript/full name must equal glyphMap.m.f.",
+                      postScriptName ?: fullName, family],
+        nil);
     return;
   }
 
