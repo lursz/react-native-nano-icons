@@ -131,6 +131,12 @@ export function validateSvg(content: string): SvgValidation {
   if (/<filter[\s>]/i.test(content)) {
     return { valid: false, reason: '<filter> is not supported yet' };
   }
+  if (/<image[\s>]/i.test(content)) {
+    return {
+      valid: false,
+      reason: 'embedded raster <image> is not supported yet',
+    };
+  }
   return { valid: true };
 }
 
