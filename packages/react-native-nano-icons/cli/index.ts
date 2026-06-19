@@ -6,5 +6,10 @@ export {
   type NanoLogger,
   type LogLevel,
 } from './logger.js';
-export { loadNanoIconsConfig, type NanoIconsConfig } from './config.js';
+export {
+  loadNanoIconsConfig,
+  loadDynamicIconSets,
+  type NanoIconsConfig,
+} from './config.js';
+export { loadDynamicSetsFromAppConfig } from './expoConfig.js';
 export { linkBare } from './link.js';

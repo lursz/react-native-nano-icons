@@ -15803,10 +15803,13 @@ __metadata:
     typescript: "npm:^5.9.3"
     xcode: "npm:^3.0.1"
   peerDependencies:
+    "@expo/config": ">=9.0.0"
     expo: "*"
     react: "*"
     react-native: "*"
   peerDependenciesMeta:
+    "@expo/config":
+      optional: true
     "@expo/config-plugins":
       optional: true
     expo:

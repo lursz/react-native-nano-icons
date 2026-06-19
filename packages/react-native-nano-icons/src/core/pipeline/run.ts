@@ -134,6 +134,7 @@ export async function runPipeline(
       u: config.upm,
       z: config.safeZone,
       s: config.startUnicode,
+      ...(config.linking === 'dynamic' ? { l: 'd' as const } : {}),
     },
     i: {},
   };
