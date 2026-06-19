@@ -11,14 +11,16 @@ type ExpoGetConfig = (
  *
  * Requires @expo/config to be installed (present in all Expo projects).
  */
-export function loadDynamicIconSets(projectRoot: string): IconSetConfig[] {
+export function loadDynamicSetsFromAppConfig(
+  projectRoot: string
+): IconSetConfig[] {
   let getConfig: ExpoGetConfig;
   try {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     ({ getConfig } = require('@expo/config') as { getConfig: ExpoGetConfig });
   } catch {
     throw new Error(
-      `[react-native-nano-icons] @expo/config not found — required for --expo-dynamic.\n` +
+      `[react-native-nano-icons] @expo/config not found — required for --dynamic --app-config.\n` +
         `It should already be present in Expo projects. If missing: yarn add @expo/config`
     );
   }
@@ -46,7 +48,7 @@ export function loadDynamicIconSets(projectRoot: string): IconSetConfig[] {
   if (dynamicSets.length === 0) {
     throw new Error(
       `[react-native-nano-icons] No icon sets with linking: "dynamic" found.\n` +
-        `--expo-dynamic only processes icon sets where linking is set to "dynamic".`
+        `--dynamic --app-config only processes icon sets where linking is set to "dynamic".`
     );
   }
 
