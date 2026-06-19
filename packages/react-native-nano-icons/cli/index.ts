@@ -7,4 +7,5 @@ export {
   type LogLevel,
 } from './logger.js';
 export { loadNanoIconsConfig, type NanoIconsConfig } from './config.js';
+export { loadDynamicIconSets } from './expoConfig.js';
 export { linkBare } from './link.js';
