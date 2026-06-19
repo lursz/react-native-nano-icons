@@ -81,17 +81,19 @@ export function createIconSet<GM extends NanoGlyphMapInput>(
         [size]
       );
 
+      const isHidden = accessible === false || accessibilityElementsHidden;
       const role = accessibilityRole === 'image' ? 'img' : accessibilityRole;
 
       return (
         <span
           ref={ref as React.Ref<HTMLSpanElement>}
           style={containerStyle}
-          role={role}
-          aria-label={accessibilityLabel ?? (name as string)}
-          aria-hidden={accessibilityElementsHidden || undefined}
-          data-testid={testID}
-          {...(accessible === false ? { tabIndex: -1 } : null)}>
+          role={isHidden ? undefined : role}
+          aria-label={
+            isHidden ? undefined : (accessibilityLabel ?? (name as string))
+          }
+          aria-hidden={isHidden || undefined}
+          data-testid={testID}>
           {layers.map(([codepoint, srcColor], i) => {
             const layerColor =
               colorArray[i] ?? lastPaletteColor ?? srcColor ?? 'black';
