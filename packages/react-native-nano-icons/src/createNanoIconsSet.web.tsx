@@ -1,12 +1,16 @@
 import { memo, useMemo, type CSSProperties } from 'react';
-import type { NanoGlyphMapInput, GlyphEntry } from './core/types';
+import type { NanoGlyphMapInput } from './core/types';
 import type { IconComponent, IconProps } from './types';
 import { shallowEqualColor } from './utils/shallowEqualColor';
+import {
+  DEFAULT_ICON_SIZE,
+  resolveGlyphEntry,
+  createCharCache,
+  createLayerColorResolver,
+} from './utils/glyphRuntime';
 
 export type { IconComponent, IconProps };
 export { shallowEqualColor };
-
-const DEFAULT_ICON_SIZE = 12;
 
 // Web renderer: uses inline <span> elements so icons flow out of the box (display: inline-block keeps width/height)
 export function createIconSet<GM extends NanoGlyphMapInput>(
@@ -14,23 +18,7 @@ export function createIconSet<GM extends NanoGlyphMapInput>(
 ): IconComponent<GM> {
   const fontBasename = glyphMap.m.f;
   const unitsPerEm = glyphMap.m.u;
-
-  const resolveEntry = (name: keyof GM['i']): GlyphEntry => {
-    return (glyphMap.i[name as string] ?? [
-      unitsPerEm,
-      [[63, 'black']],
-    ]) as GlyphEntry;
-  };
-
-  const codepointCache = new Map<number, string>();
-  const getChar = (codepoint: number): string => {
-    let ch = codepointCache.get(codepoint);
-    if (ch === undefined) {
-      ch = String.fromCodePoint(codepoint);
-      codepointCache.set(codepoint, ch);
-    }
-    return ch;
-  };
+  const getChar = createCharCache();
 
   const Icon = memo(
     ({
@@ -45,13 +33,10 @@ export function createIconSet<GM extends NanoGlyphMapInput>(
       testID,
       ref,
     }: IconProps<keyof GM['i']>) => {
-      const [adv, layers] = resolveEntry(name);
+      const [adv, layers] = resolveGlyphEntry(glyphMap, name);
       const width = (adv / unitsPerEm) * size;
 
-      const colorArray = Array.isArray(color) ? color : [color];
-      const lastPaletteColor = colorArray.length
-        ? colorArray[colorArray.length - 1]
-        : undefined;
+      const resolveColor = createLayerColorResolver(color);
 
       const containerStyle = useMemo<CSSProperties>(
         () => ({
@@ -95,8 +80,7 @@ export function createIconSet<GM extends NanoGlyphMapInput>(
           aria-hidden={isHidden || undefined}
           data-testid={testID}>
           {layers.map(([codepoint, srcColor], i) => {
-            const layerColor =
-              colorArray[i] ?? lastPaletteColor ?? srcColor ?? 'black';
+            const layerColor = resolveColor(i, srcColor);
             return (
               <span
                 key={i}

@@ -3,13 +3,16 @@ import { PixelRatio, UIManager, processColor } from 'react-native';
 import type { NanoGlyphMapInput, GlyphEntry } from './core/types';
 import type { IconComponent, IconProps } from './types';
 import { shallowEqualColor } from './utils/shallowEqualColor';
+import {
+  DEFAULT_ICON_SIZE,
+  resolveGlyphEntry,
+  createLayerColorResolver,
+} from './utils/glyphRuntime';
 import NanoIconViewNative from './specs/NanoIconViewNativeComponent';
 import { createJSIconSet } from './createNanoIconsSet.shared';
 
 export type { IconComponent, IconProps };
 export { shallowEqualColor };
-
-const DEFAULT_ICON_SIZE = 12;
 
 const HAS_NATIVE_IMPL = UIManager.hasViewManagerConfig('NanoIconView');
 
@@ -34,13 +37,6 @@ export function createIconSet<GM extends NanoGlyphMapInput>(
 
   const fontFamilyBasename = glyphMap.m.f;
   const unitsPerEm = glyphMap.m.u;
-
-  const resolveEntry = (name: keyof GM['i']): GlyphEntry => {
-    return (glyphMap.i[name as string] ?? [
-      unitsPerEm,
-      [[63, 'black']],
-    ]) as GlyphEntry;
-  };
 
   // Pre-compute per-icon static data (codepoints, default colors) once at set creation
   // Avoids layers.map() + processColor per icon mount
@@ -89,7 +85,7 @@ export function createIconSet<GM extends NanoGlyphMapInput>(
       ref,
     }: IconProps<keyof GM['i']>) => {
       const fontScale = allowFontScaling ? PixelRatio.getFontScale() : 1;
-      const [adv, layers] = resolveEntry(name);
+      const [adv, layers] = resolveGlyphEntry(glyphMap, name);
       const scaledSize = size * fontScale;
       const width = (adv / unitsPerEm) * scaledSize;
 
@@ -101,15 +97,10 @@ export function createIconSet<GM extends NanoGlyphMapInput>(
         if (color === undefined || color === null) {
           return getDefaultColors(nameStr, layers);
         }
-        const colorArray = Array.isArray(color) ? color : [color];
-        const lastPaletteColor = colorArray.length
-          ? colorArray[colorArray.length - 1]
-          : undefined;
-        return layers.map(([, srcColor], i) => {
-          const layerColor =
-            colorArray[i] ?? lastPaletteColor ?? srcColor ?? 'black';
-          return cachedProcessColor(layerColor as string);
-        });
+        const resolveColor = createLayerColorResolver(color);
+        return layers.map(([, srcColor], i) =>
+          cachedProcessColor(resolveColor(i, srcColor) as string)
+        );
       }, [nameStr, color]);
 
       const nativeStyle = useMemo(
