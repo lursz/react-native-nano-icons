@@ -1,6 +1,6 @@
 /** @jest-environment node */
 
-import { JSDOM } from 'jsdom';
+import { DOMParser, type Element } from '@xmldom/xmldom';
 import {
   calculateOpColor,
   parseFlattenedSvg,
@@ -64,10 +64,10 @@ describe('parseColor', () => {
 // ---------------------------------------------------------------------------
 
 describe('calculateOpColor', () => {
-  function makeElement(svg: string, selector: string): Element {
-    const doc = new JSDOM(svg).window.document;
-    const el = doc.querySelector(selector);
-    if (!el) throw new Error(`No element matching "${selector}"`);
+  function makeElement(svg: string, tagName: string): Element {
+    const doc = new DOMParser().parseFromString(svg, 'image/svg+xml');
+    const el = doc.getElementsByTagName(tagName)[0];
+    if (!el) throw new Error(`No <${tagName}> element found`);
     return el;
   }
 
