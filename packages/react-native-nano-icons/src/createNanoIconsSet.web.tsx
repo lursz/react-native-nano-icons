@@ -102,5 +102,8 @@ export function createIconSet<GM extends NanoGlyphMapInput>(
 
   Icon.displayName = `NanoIcon(${fontBasename})`;
 
-  return Icon;
+  // No-op on web: fonts come from CSS @font-face, nothing to load at runtime.
+  const IconComp = Icon as unknown as IconComponent<GM>;
+  IconComp.loadFont = () => Promise.resolve();
+  return IconComp;
 }
