@@ -279,6 +279,7 @@ The chart shows time in milliseconds across three phases: **JS Thread** (JavaScr
 ## ⚠️ Known Limitations
 
 - SVG `<filter>` and `<mask>` elements are not supported — font glyphs cannot represent these effects.
+- Embedded raster images (`<image>` elements, e.g. base64-encoded bitmaps inside an SVG) are not supported — only vector geometry can be converted to glyphs.
 - Only `*.svg` input files are supported.
 
 ---
@@ -299,7 +300,7 @@ At build time, the pipeline processes your SVG directory through four stages:
 4. **Font compilation** — Layers are compiled into a standard `.ttf` font file, with each layer mapped to a private-use Unicode codepoint.
 5. **Glyphmap generation** — A compact `.glyphmap.json` is created, mapping icon names to their codepoints, default colors, and metrics.
 
-At runtime, the native component stacks glyph layers at the same position — one `drawGlyphs` call per layer via [CoreText](https://developer.apple.com/documentation/coretext/) (iOS) or `drawText` via [Canvas](<https://developer.android.com/reference/android/graphics/Canvas#drawText(java.lang.String,%20float,%20float,%20android.graphics.Paint)>) (Android). On web and Expo Go, a pure `react-native` fallback uses stacked `<Text>` elements.
+At runtime, the native component stacks glyph layers at the same position — one `drawGlyphs` call per layer via [CoreText](https://developer.apple.com/documentation/coretext/) (iOS) or `drawText` via [Canvas](<https://developer.android.com/reference/android/graphics/Canvas#drawText(java.lang.String,%20float,%20float,%20android.graphics.Paint)>) (Android). On the web, icons render as stacked inline `<span>` elements. In Expo Go, a pure `react-native` fallback uses stacked `<Text>` elements.
 
 ---
 
