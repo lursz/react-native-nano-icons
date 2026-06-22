@@ -120,7 +120,7 @@ The plugin accepts an object with an `iconSets` array, allowing you to generate 
 | `outputDir`    | `string` | No       | `../nanoicons` | Path where the `.ttf` and `.json` artifacts will be saved. Defaults to a sibling `nanoicons` folder relative to the input. |
 | `upm`          | `number` | No       | `1024`         | Units Per Em. Defines the resolution of the font grid.                                                                     |
 | `startUnicode` | `string` | No       | `0xe900`       | The starting Hex Unicode point for the first icon glyph.                                                                   |
-| `linking`      | `'static' \| 'dynamic'` | No | `'static'` | Delivery mode for the generated TTF. `'static'` bundles it into the native app. `'dynamic'` excludes it from native linking so the host app can deliver it at runtime (via OTA). See [Dynamic linking (OTA)](#dynamic-linking-ota). |
+| `linking`      | `'static' \| 'dynamic'` | No | `'static'` | Delivery mode for the generated TTF. `'static'` bundles it into the native app. `'dynamic'` excludes it from native linking so the host app can deliver it at runtime (i.e. via OTA update). See [Dynamic linking](#dynamic-linking-expo-ota-updates-support). |
 
   <details>
   <summary>Default Dir Path Behavior</summary>
@@ -207,7 +207,7 @@ export default function App() {
 | `ref`                | `Ref<View>`                  | —                 | Ref to the underlying native view.                                                                                                           |
 
 ### Dynamic linking (Expo OTA updates support)
-TL;DR the default static linking is best for most use cases as it does not affect bundle size at all, but if you have an [OTA updates workflow](https://expo.dev/solutions/eas-ota-updates) and make changes to your icons frequently, you can opt out of native bundling and register a particular iconSet font at runtime explicitly.
+TL;DR the default static linking is best for most use cases as it does not affect JS bundle size at all, but if you have an [OTA updates workflow](https://expo.dev/solutions/eas-ota-updates) and make changes to your icons frequently, you can opt out of native bundling and register a particular iconSet font at runtime explicitly.
 
 By default, generated TTFs are bundled into the native app at build/link time. Set `linking: 'dynamic'` to opt out: the build still produces the `.ttf` and `.glyphmap.json`, but then OTA workflows will ship icon outside the native binary - you deliver the file and the library will register it at runtime. 
 
