@@ -33,7 +33,40 @@ Memory mapped into the process address space without a file backing it - not tra
 
 ---
 
-## Per-Library Analysis
+## Memory Benchmark - 1000 Icons (Android)
+
+Source: `adb shell dumpsys meminfo com.nanoiconsbenchmarking`
+Post-rebuild release snapshots, measured under identical conditions.
+
+> **Peak PSS** = `TOTAL PSS` from the `dumpsys meminfo` snapshot — current PSS at measurement time, not a historical high-water mark. Peak RSS watermark (`VmHWM` from `/proc/<pid>/status`) = 231044 KB (~225 MB), the closest available true peak (RSS, not PSS). To capture a sampled peak over a run use `adb shell dumpsys procstats com.nanoiconsbenchmarking`.
+
+### Peak PSS
+Proportional Set Size — total RAM the process uses, with shared pages counted proportionally. The primary memory footprint metric on Android.
+
+### Java Heap
+Memory allocated by the Android Runtime (ART) for Java/Kotlin objects.
+
+### Native Heap
+Memory allocated in native (C/C++) code — includes the Hermes engine, JSI bridge, and native modules.
+
+### Graphics
+GPU memory for textures, surfaces, and render buffers.
+
+### Code
+Memory-mapped code pages (`.dex`, `.so` files, AOT-compiled native code).
+
+| Library | Peak PSS | Java Heap | Native Heap | Graphics | Code |
+|---|---|---|---|---|---|
+| `react-native-nano-icons` | 148.2 MB | 18.8 MB | 57.7 MB | 2.9 MB | 33.8 MB |
+| `expo-image` | 161.1 MB | 26.4 MB | 77.7 MB | 2.7 MB | 32.4 MB |
+| `@expo/vector-icons` | 162.5 MB | 24.4 MB | 64.4 MB | 3.1 MB | 34.1 MB |
+| `react-native-svg` | 274.4 MB | 29.2 MB | 173.9 MB | 2.8 MB | 34.1 MB |
+
+> For full methodology and raw snapshots see [MEMORY_BENCHMARK_ANDROID.md](MEMORY_BENCHMARK_ANDROID.md).
+
+---
+
+## Per-Library Analysis (iOS)
 
 ### `react-native-svg` - 105.76 MiB peak + noticeable render lag
 
