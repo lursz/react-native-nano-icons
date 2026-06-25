@@ -38,8 +38,6 @@ Memory mapped into the process address space without a file backing it - not tra
 Source: `adb shell dumpsys meminfo com.nanoiconsbenchmarking`
 Post-rebuild release snapshots, measured under identical conditions.
 
-> **Peak PSS** = `TOTAL PSS` from the `dumpsys meminfo` snapshot — current PSS at measurement time, not a historical high-water mark. Peak RSS watermark (`VmHWM` from `/proc/<pid>/status`) = 231044 KB (~225 MB), the closest available true peak (RSS, not PSS). To capture a sampled peak over a run use `adb shell dumpsys procstats com.nanoiconsbenchmarking`.
-
 ### Peak PSS
 Proportional Set Size — total RAM the process uses, with shared pages counted proportionally. The primary memory footprint metric on Android.
 
@@ -62,7 +60,8 @@ Memory-mapped code pages (`.dex`, `.so` files, AOT-compiled native code).
 | `@expo/vector-icons` | 162.5 MB | 24.4 MB | 64.4 MB | 3.1 MB | 34.1 MB |
 | `react-native-svg` | 274.4 MB | 29.2 MB | 173.9 MB | 2.8 MB | 34.1 MB |
 
-> For full methodology and raw snapshots see [MEMORY_BENCHMARK_ANDROID.md](MEMORY_BENCHMARK_ANDROID.md).
+<img width="1748" height="874" alt="mem_bench_android" src="https://github.com/user-attachments/assets/922a9eab-a174-42ef-b5d8-8853302b2364" />
+
 
 ---
 
