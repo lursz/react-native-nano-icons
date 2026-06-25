@@ -1,13 +1,12 @@
-# Memory Benchmark - 1000 Icons (iOS)
+# Memory Benchmark - 1000 Icons
 
 ## Test Scenario
 
-Profiled with Xcode Profiler on Iphone 17 (base)  
 Flow: Home → 1k Icons → scroll to bottom → Home → 1k Icons again
 
 ---
 
-## Results Summary
+## Memory Benchmark - 1000 Icons (iOS - Iphone 17)
 
 ### Peak Memory
 The maximum value of **Current Bytes** at any point during the recording, shown on the Instruments graph at the cursor position. It represents the total live memory in the process at that instant - heap allocations + anonymous VM regions combined. It is the ceiling of what the OS needs to hold in RAM to keep the app running.
@@ -33,7 +32,7 @@ Memory mapped into the process address space without a file backing it - not tra
 
 ---
 
-## Memory Benchmark - 1000 Icons (Android)
+## Memory Benchmark - 1000 Icons (Android - OnePlus 12)
 
 Source: `adb shell dumpsys meminfo com.nanoiconsbenchmarking`
 Post-rebuild release snapshots, measured under identical conditions.
