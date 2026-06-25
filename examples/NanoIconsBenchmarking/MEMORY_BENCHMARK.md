@@ -23,10 +23,10 @@ Memory mapped into the process address space without a file backing it - not tra
 
 | Library | Peak Memory | Persistent Heap | Anonymous VM | Freed on back-nav | Render lag |
 |---|---|---|---|---|---|
-| `react-native-svg` | **105.76 MiB** | 34.32 MiB | 53.84 MiB | partial | **yes** |
-| `react-native-nano-icons` | **139.58 MiB** | 26.88 MiB | 55.16 MiB | yes (visible) | no |
-| `expo-image` (SVG) | **162.68 MiB** | 38.88 MiB | 2.59 MiB | yes | no |
-| `expo-vector-icons` | **343.78 MiB** | 37.66 MiB | 310.12 MiB | no | no |
+| `react-native-svg` | **105.67 MiB** | 34.23 MiB | 53.84 MiB | partial | **yes** |
+| `react-native-nano-icons` | **139.48 MiB** | 26.69 MiB | 55.16 MiB | yes (visible) | no |
+| `expo-image` (SVG) | **162.54 MiB** | 38.84 MiB | 2.59 MiB | yes | no |
+| `expo-vector-icons` | **343.78 MiB** | 36.80 MiB | 310.09 MiB | no | no |
 
 <img width="1748" height="874" alt="image" src="https://github.com/user-attachments/assets/1a82ef2c-936e-4e13-ae91-35a0a7748159" />
 
@@ -66,7 +66,7 @@ Memory-mapped code pages (`.dex`, `.so` files, AOT-compiled native code).
 
 ## Per-Library Analysis (iOS)
 
-### `react-native-svg` - 105.76 MiB peak + noticeable render lag
+### `react-native-svg` - 105.67 MiB peak + noticeable render lag
 
 - Top allocators: `RNSVGSvgView` (SVG root), `RNSVGPath` (path element), `RNSVGGroup` (element grouping), `VM: RNSVGSvgView (CALayer)` (compositing surface)
 - Lowest peak of the four - path data stored as compact primitives, no decoded bitmaps
@@ -82,9 +82,9 @@ Memory-mapped code pages (`.dex`, `.so` files, AOT-compiled native code).
 </details>
 
 
-### `react-native-nano-icons` - 139.58 MiB peak
+### `react-native-nano-icons` - 139.48 MiB peak
 
-- Top allocators: `VM: NanoIconView (CALayer)` (52.56 MiB, compositing surface), `NanoIconView` (475 KiB, icon view)
+- Top allocators: `VM: NanoIconView (CALayer)` (52.56 MiB, compositing surface), `NanoIconView` (1.00 MiB, icon view)
 - Single native view per icon - no view subtree, no JS shadow nodes retained per icon - the lowest persistent heap of all four libraries
 - **Only library with a visible memory drop on back-navigation** - `NanoIconView` is a pure UIView subclass. ARC reference count hits zero the moment React Navigation pops the screen, immediately deallocating each view and its CALayer with no GC delay
 - Memory graph: clean rise, step-down, rise again on second visit - true deallocation rather than GC deferral or caching. Also the second Icon list visit costs the same as the first, meaning no hidden accumulation across navigation cycles
@@ -98,7 +98,7 @@ Memory-mapped code pages (`.dex`, `.so` files, AOT-compiled native code).
 
 </details>
 
-### `expo-image (SVG)` - 162.68 MiB peak
+### `expo-image (SVG)` - 162.54 MiB peak
 
 - Top allocators: `SVGPathCommand` (1.48 MiB, ~48k instances, path instruction), `SVGAttribute` (795 KiB, ~25k instances, element attribute), `CGPath` (301 KiB, resolved geometry) - roughly 48 SVG element attributes per icon parsed and retained on the heap
 - expo-image does not parse SVGs itself - it hands each SVG file to Apple's ImageIO framework (the same pipeline used for PNG/JPEG decoding), which routes SVG files through CoreSVG (Apple's private SVG renderer). CoreSVG parses the XML and builds an internal representation, these objects stay alive in memory for as long as the view is live, because CoreSVG retains the parsed tree for potential re-rasterisation (e.g. on bounds change). This is fundamentally different from RNSVG, which maps SVG elements to React components — here there are no JS objects and no React tree at all, just a native image source fed into an image view. This is why Anonymous VM is low

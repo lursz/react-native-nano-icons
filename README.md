@@ -284,10 +284,10 @@ Profiled with the Xcode Profiler on an iPhone 17 while rendering the same 1,000 
 
 | Library | Peak Memory | Persistent Heap | Anonymous VM | Freed on back-nav | Render lag |
 |---|---|---|---|---|---|
-| `react-native-svg` | **105.76 MiB** | 34.32 MiB | 53.84 MiB | partial | **yes** |
-| `react-native-nano-icons` | **139.58 MiB** | 26.88 MiB | 55.16 MiB | yes (visible) | no |
-| `expo-image` (SVG) | **162.68 MiB** | 38.88 MiB | 2.59 MiB | yes | no |
-| `@expo/vector-icons` | **343.78 MiB** | 37.66 MiB | 310.12 MiB | no | no |
+| `react-native-svg` | **105.67 MiB** | 34.23 MiB | 53.84 MiB | partial | **yes** |
+| `react-native-nano-icons` | **139.48 MiB** | 26.69 MiB | 55.16 MiB | yes (visible) | no |
+| `expo-image` (SVG) | **162.54 MiB** | 38.84 MiB | 2.59 MiB | yes | no |
+| `@expo/vector-icons` | **343.78 MiB** | 36.80 MiB | 310.09 MiB | no | no |
 
 ### Memory (Android)
 
