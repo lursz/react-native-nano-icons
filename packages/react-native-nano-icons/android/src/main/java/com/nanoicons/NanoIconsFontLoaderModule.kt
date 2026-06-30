@@ -49,7 +49,12 @@ class NanoIconsFontLoaderModule(reactContext: ReactApplicationContext) :
       uri.startsWith("file://") ||
         uri.startsWith("http://") ||
         uri.startsWith("https://") -> URL(uri).openStream()
-      else -> File(uri).inputStream()
+      else -> {
+        val resources = reactApplicationContext.resources
+        val resId =
+          resources.getIdentifier(uri, "raw", reactApplicationContext.packageName)
+        if (resId != 0) resources.openRawResource(resId) else File(uri).inputStream()
+      }
     }
 
   companion object {
