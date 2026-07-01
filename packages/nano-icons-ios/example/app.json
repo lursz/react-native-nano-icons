@@ -1,0 +1,13 @@
+{
+  "name": "NanoIconsIosExample",
+  "displayName": "NanoIconsIosExample",
+  "components": [
+    {
+      "appKey": "NanoIconsIosExample",
+      "displayName": "NanoIconsIosExample"
+    }
+  ],
+  "ios": {
+    "bundleIdentifier": "com.nanoicons.ios.example"
+  }
+}

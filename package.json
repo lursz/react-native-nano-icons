@@ -5,6 +5,7 @@
   "workspaces": {
     "packages": [
       "packages/*",
+      "packages/*/example",
       "examples/*"
     ]
   },
@@ -24,6 +25,10 @@
     "build:benchmarks:android:release": "yarn workspace nano-icons-benchmarking android -- --mode Release",
     "start:bare": "yarn workspace bare-react-native-nano-icons-example start",
     "start:expo": "yarn workspace expo-nano-icons-example start",
+    "start:nano-icons-android": "yarn workspace nano-icons-android-example start",
+    "start:nano-icons-ios": "yarn workspace nano-icons-ios-example start",
+    "build:nano-icons-android": "yarn workspace nano-icons-android-example android",
+    "build:nano-icons-ios": "yarn workspace nano-icons-ios-example ios",
     "prebuild": "yarn workspace expo-nano-icons-example expo prebuild --clean",
     "test": "yarn workspace react-native-nano-icons test",
     "ts-check": "yarn workspaces foreach --all --parallel --topological-dev run ts-check",
