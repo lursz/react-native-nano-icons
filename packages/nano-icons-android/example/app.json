@@ -1,0 +1,13 @@
+{
+  "name": "NanoIconsAndroidExample",
+  "displayName": "NanoIconsAndroidExample",
+  "components": [
+    {
+      "appKey": "NanoIconsAndroidExample",
+      "displayName": "NanoIconsAndroidExample"
+    }
+  ],
+  "android": {
+    "package": "com.nanoicons.android.example"
+  }
+}
