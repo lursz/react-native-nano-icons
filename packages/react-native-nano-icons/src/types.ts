@@ -23,7 +23,7 @@ export type IconProps<Name> = {
   ref?: Ref<ViewRef>;
   testID?: string;
   /**
-   * Forwarded to the container element on web (e.g. for Tailwind/Uniwind).
+   * Forwarded to the container element on web.
    * @platform Web only - no-op on native.
    */
   className?: string;
