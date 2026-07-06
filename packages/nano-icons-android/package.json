@@ -1,27 +1,8 @@
 {
   "name": "nano-icons-android",
   "version": "0.0.0",
-  "description": "Android native package for nano icons",
-  "react-native": "android",
-  "codegenConfig": {
-    "name": "NanoIconsAndroidSpec",
-    "type": "modules",
-    "jsSrcsDir": "specs",
-    "android": {
-      "javaPackageName": "com.reactnativenanoiconsmonorepo.nanoiconsandroid"
-    }
-  },
+  "private": true,
+  "description": "Pure-native Android library for nano icons (TTF glyph rendering, no React Native)",
   "author": "Software Mansion",
-  "license": "MIT",
-  "homepage": "https://github.com/software-mansion-labs/nano-icons-android#readme",
-  "peerDependencies": {
-    "react": "*",
-    "react-native": "*"
-  },
-  "devDependencies": {
-    "@react-native/babel-preset": "0.85.0",
-    "@types/react": "^19.2.0",
-    "react": "19.2.3",
-    "react-native": "0.85.0"
-  }
+  "license": "MIT"
 }
