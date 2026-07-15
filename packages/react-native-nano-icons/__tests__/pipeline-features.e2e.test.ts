@@ -5,9 +5,6 @@ import fsp from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 
-// Must be set before any pipeline import so getPackageRoot() picks it up.
-process.env.NANO_PACKAGE_ROOT = path.resolve(__dirname, '..');
-
 import { runPipeline } from '../src/core/pipeline/run';
 import type { NanoGlyphMap, NanoLogger } from '../src/core/types';
 
@@ -17,7 +14,12 @@ import type { NanoGlyphMap, NanoLogger } from '../src/core/types';
 
 const ROOT = path.resolve(__dirname, '..');
 const TEST_ICONS = path.join(ROOT, 'test_icons');
-const PIPELINE = { upm: 1000, safeZone: 800, startUnicode: 0xe000 } as const;
+const PIPELINE = {
+  upm: 1000,
+  safeZone: 800,
+  startUnicode: 0xe000,
+  linking: 'static',
+} as const;
 
 type Icon = { srcDir: string; name: string };
 
