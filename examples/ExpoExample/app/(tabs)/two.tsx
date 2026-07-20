@@ -23,11 +23,23 @@ const Row = ({ icon }: { icon: keyof typeof swmIconGlyphMap.i }) => {
   );
 };
 
+// font has linking: "dynamic" set in (app.json)
+const DynamicHeader = () => (
+  <View style={{ paddingVertical: 14, gap: 4 }}>
+    <Text style={{ fontSize: 16, fontWeight: '600' }}>Dynamic (OTA) font</Text>
+    <Text style={{ fontSize: 13, opacity: 0.7 }}>
+      SWMIconsOutline isn't bundled into the app - it's loaded at runtime. If
+      the load failed, the glyphs below would render as empty boxes.
+    </Text>
+  </View>
+);
+
 export default function TabTwoScreen() {
   return (
     <FlatList
       data={iconSubset}
       keyExtractor={(item) => item}
+      ListHeaderComponent={DynamicHeader}
       renderItem={({ item }) => <Row icon={item} />}
       contentContainerStyle={{
         paddingHorizontal: 10,

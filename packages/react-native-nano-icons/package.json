@@ -1,7 +1,7 @@
 {
   "name": "react-native-nano-icons",
-  "version": "0.1.8",
-  "description": "Use any svg as font. High-performance, build-time icon font generation and rendering for React Native & Expo.",
+  "version": "0.2.1",
+  "description": "High-performance icon rendering for React Native & Expo.",
   "react-native": "src/index.ts",
   "source": "src/index.ts",
   "bin": "lib/commonjs/scripts/cli.js",
@@ -48,11 +48,15 @@
     "xcode": "^3.0.1"
   },
   "peerDependencies": {
+    "@expo/config": ">=9.0.0",
     "expo": "*",
     "react": "*",
     "react-native": "*"
   },
   "peerDependenciesMeta": {
+    "@expo/config": {
+      "optional": true
+    },
     "@expo/config-plugins": {
       "optional": true
     },
@@ -79,7 +83,8 @@
   },
   "exports": {
     ".": {
-      "source": "./src/index.tsx",
+      "source": "./src/index.ts",
+      "react-native": "./lib/module/index.js",
       "require": {
         "types": "./lib/typescript/src/index.d.ts",
         "default": "./lib/commonjs/index.node.js"
@@ -163,7 +168,7 @@
   },
   "codegenConfig": {
     "name": "RNNanoIconsSpec",
-    "type": "components",
+    "type": "all",
     "jsSrcsDir": "./src/specs",
     "android": {
       "javaPackageName": "com.nanoicons"

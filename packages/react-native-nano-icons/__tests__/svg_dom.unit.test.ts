@@ -204,6 +204,16 @@ describe('validateSvg', () => {
     }
   });
 
+  test('SVG with embedded <image> is invalid and reason mentions image', () => {
+    const svg =
+      '<svg xmlns="http://www.w3.org/2000/svg"><image href="data:image/png;base64,AAA"/></svg>';
+    const result = validateSvg(svg);
+    expect(result.valid).toBe(false);
+    if (!result.valid) {
+      expect(result.reason).toMatch(/image/i);
+    }
+  });
+
   test('SVG with <clipPath> is valid', () => {
     const svg =
       '<svg xmlns="http://www.w3.org/2000/svg"><defs><clipPath id="c"><path d="M0 0h24v24H0z"/></clipPath></defs><g clip-path="url(#c)"><path d="M1 1"/></g></svg>';
