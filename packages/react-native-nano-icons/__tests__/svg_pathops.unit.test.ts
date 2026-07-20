@@ -1,5 +1,9 @@
 /** @jest-environment node */
 
+import path from 'node:path';
+
+process.env.NANO_PACKAGE_ROOT = path.resolve(__dirname, '..');
+
 import {
   buildPathopsBackend,
   convertEvenoddToWinding,

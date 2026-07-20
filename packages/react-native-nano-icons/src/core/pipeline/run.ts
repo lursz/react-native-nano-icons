@@ -35,7 +35,7 @@ export type PipelineResult = {
 // Same-color path merging
 // ---------------------------------------------------------------------------
 
-type ParsedPath = {
+export type ParsedPath = {
   d: string;
   fill: string | null;
   fillRule?: 'evenodd';
@@ -58,7 +58,7 @@ function concatPathDs(ds: string[]): string | null {
  * Merge consecutive same-color paths into single compound paths via boolean UNION.
  * Preserves z-order: only merges runs of adjacent paths with identical fill color.
  */
-function mergeSameColorPaths(
+export function mergeSameColorPaths(
   paths: ParsedPath[],
   logger?: NanoLogger
 ): ParsedPath[] {
