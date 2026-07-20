@@ -17,7 +17,12 @@ import type { NanoGlyphMap, NanoLogger } from '../src/core/types';
 
 const ROOT = path.resolve(__dirname, '..');
 const TEST_ICONS = path.join(ROOT, 'test_icons');
-const PIPELINE = { upm: 1000, safeZone: 800, startUnicode: 0xe000 } as const;
+const PIPELINE = {
+  upm: 1000,
+  safeZone: 800,
+  startUnicode: 0xe000,
+  linking: 'static',
+} as const;
 
 type Icon = { srcDir: string; name: string };
 

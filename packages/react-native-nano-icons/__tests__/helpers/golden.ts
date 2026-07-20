@@ -57,6 +57,7 @@ export const PIPELINE = {
   upm: 1000,
   safeZone: 800,
   startUnicode: 0xe000,
+  linking: 'static',
 } as const;
 
 export type RunResult = {
